@@ -81,7 +81,7 @@ void MyWin::KeyCB(int key, int scancode, int action, int mods) {
     }
 }
 
-
+#define SQ(x) ((x)*(x))
 // ==========================================================================
 void MyWin::MainLoop() {
    ViewportOne(0,0,wd,ht);
@@ -90,15 +90,28 @@ void MyWin::MainLoop() {
    MyTri   trian;
    MyCircle circle(15);
 
-   float   tx=0.0, ty=0.5;
+   float cx, cy;
+   srand(time(NULL));
+   cx = float(random()%2000-1000)/1000.0;
+   cy = float(random()%2000-1000)/1000.0;
+
+   float   tx=0.0, ty=0.0;
+
    do {
+      // collision detection.
+      if ((SQ(cx - tx) + SQ(cy-ty)) < 0.09f) {
+         cx = float(random()%2000-1000)/1000.0;
+         cy = float(random()%2000-1000)/1000.0;
+      }
+
       glClear( GL_COLOR_BUFFER_BIT );
    
       AGLErrors("main-loopbegin");
       // =====================================================        Drawing
       trian.draw();
-      cross.draw(tx,ty);
-      circle.draw(0.0, 0.0);
+      circle.draw(tx, ty);
+      cross.draw(cx,cy);
+
       AGLErrors("main-afterdraw");
 
       glfwSwapBuffers(win()); // =============================   Swap buffers
