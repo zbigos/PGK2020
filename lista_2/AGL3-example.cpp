@@ -43,10 +43,14 @@ public:
 
          #version 330 
          in  vec4 vcolor;
+         in  vec4 gl_FragCoord;
          out vec4 color;
 
          void main(void) {
-            color = vcolor;
+            if(((gl_FragCoord[0] - 400) * (gl_FragCoord[0] - 400) + (gl_FragCoord[1] - 400) * (gl_FragCoord[1] - 400)) < 10000)
+               color = vec4(1, 1, 1, 1.0);
+            else
+               color = vcolor;
          } 
 
       )END");
@@ -56,7 +60,10 @@ public:
       glDrawArrays(GL_TRIANGLES, 0, 3);
    }
 };
+// skoro okno ma 800x800, to środkiem jest 400x400
 
+
+// color = vcolor;
 // ==========================================================================
 // Window Main Loop Inits ...................................................
 // ==========================================================================
@@ -119,12 +126,10 @@ void MyWin::MainLoop() {
       //glfwWaitEvents();   
 
       if (glfwGetKey(win(), GLFW_KEY_DOWN ) == GLFW_PRESS) {
-         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
          ty -= 0.01;
       }
       
       if (glfwGetKey(win(), GLFW_KEY_UP ) == GLFW_PRESS) {
-         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
          ty += 0.01;
       }
       
@@ -141,7 +146,7 @@ void MyWin::MainLoop() {
 
 int main(int argc, char *argv[]) {
    MyWin win;
-   win.Init(800,600,"AGL3 example",0,33);
+   win.Init(800,800,"AGL3 example",0,33);
    win.MainLoop();
    return 0;
 }
