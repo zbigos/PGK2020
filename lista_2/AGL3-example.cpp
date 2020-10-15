@@ -12,6 +12,8 @@
 #include <AGL3Drawable.hpp>
 
 #include "shape_renderers/cross.cpp"
+#include "shape_renderers/circle.cpp"
+
 // ==========================================================================
 // Drawable object: no-data only: vertex/fragment programs
 // ==========================================================================
@@ -86,6 +88,7 @@ void MyWin::MainLoop() {
 
    MyCross cross;
    MyTri   trian;
+   MyCircle circle(15);
 
    float   tx=0.0, ty=0.5;
    do {
@@ -95,6 +98,7 @@ void MyWin::MainLoop() {
       // =====================================================        Drawing
       trian.draw();
       cross.draw(tx,ty);
+      circle.draw(0.0, 0.0);
       AGLErrors("main-afterdraw");
 
       glfwSwapBuffers(win()); // =============================   Swap buffers

@@ -6,7 +6,7 @@
 
     #include "../AGL3Window.hpp"
     #include "../AGL3Drawable.hpp"
-#endif
+
 /* compiler take the wheel */
 
 // ==========================================================================
@@ -82,3 +82,5 @@ public:
  private:
    GLfloat cross_color[3] = { 0.0, 1.0, 0.0 };
 };
+
+#endif
