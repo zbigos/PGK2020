@@ -14,46 +14,72 @@
 #include "shape_renderers/cross.cpp"
 #include "shape_renderers/circle.cpp"
 
+#define chunkcount 8
+#define winsize 800
+#define chunksize ((winsize) / (chunkcount))
 // ==========================================================================
 // Drawable object: no-data only: vertex/fragment programs
 // ==========================================================================
 class MyTri : public AGLDrawable {
 public:
-   MyTri() : AGLDrawable(0) {
-      setShaders();
+   MyTri(
+      char* board_back, char* board_front,    
+      float a, float b, 
+      float c, float d,
+      float e, float f
+   ) : AGLDrawable(0) {
+      setShaders(board_back, board_front, a, b, c, d, e, f);
    }
-   void setShaders() {
-      compileShaders(R"END(
+   void setShaders(char* board_back, char* board_front,
+   float a, float b, 
+   float c, float d,
+   float e, float f) {
+      char shadera[1024], shaderb[1024];
 
+      sprintf(shadera, R"END(
          #version 330 
-         out vec4 vcolor;
          void main(void) {
-            const vec2 vertices[3] = vec2[3](vec2( 0.9, -0.9),
-                                             vec2(-0.9, -0.9),
-                                             vec2( 0.9,  0.9));
-            const vec4 colors[]    = vec4[3](vec4(1.0, 0.0, 0.0, 1.0),
-                                             vec4(0.0, 1.0, 0.0, 1.0),
-                                             vec4(0.0, 0.0, 1.0, 1.0));
+            const vec2 vertices[3] = vec2[3](vec2( %lf, %lf),
+                                             vec2( %lf, %lf),
+                                             vec2( %lf,  %lf));
 
-            vcolor      = colors[gl_VertexID];
             gl_Position = vec4(vertices[gl_VertexID], 0.5, 1.0); 
          }
 
-      )END", R"END(
+      )END", a, b, c, d, e, f);
 
+      sprintf(shaderb, R"END(
          #version 330 
-         in  vec4 vcolor;
          in  vec4 gl_FragCoord;
          out vec4 color;
 
          void main(void) {
-            if(((gl_FragCoord[0] - 400) * (gl_FragCoord[0] - 400) + (gl_FragCoord[1] - 400) * (gl_FragCoord[1] - 400)) < 10000)
-               color = vec4(1, 1, 1, 1.0);
+            int ry = int(gl_FragCoord[0]/(800/8));
+            int rx = int(gl_FragCoord[1]/(800/8));
+            float oy = ry * (800/8) + ((800/8)/2);
+            float ox = rx * (800/8) + ((800/8)/2);
+            float py = gl_FragCoord[0];
+            float px = gl_FragCoord[1];
+
+            if(((px-ox)*(px-ox) + (py-oy)*(py-oy)) < 0.2*(800/8)*(800/8))
+               if((rx+ry) % 2 == 0)
+                  color = vec4(%s);
+               else
+                  color = vec4(%s);
             else
-               color = vcolor;
+               if((rx+ry) % 2 == 1)
+                  color = vec4(%s);
+               else
+                  color = vec4(%s);
          } 
 
-      )END");
+      )END", 
+      board_back, board_front, board_back, board_front
+      );
+      printf("%s", shaderb);
+      compileShaders(shadera, shaderb);
+      //            
+
    }
    void draw() {
       bindProgram();
@@ -94,7 +120,20 @@ void MyWin::MainLoop() {
    ViewportOne(0,0,wd,ht);
 
    MyCross cross;
-   MyTri   trian;
+   MyTri   trian1(
+      "1, 1, 1, 1.0", "0, 0, 0, 1.0",
+      -1.0f, 1.0f, 
+      -1.0f, -1.0f, 
+      1.0f, 1.0f
+   );
+
+   MyTri   trian2(
+      "1, 1, 1, 1.0", "0, 0, 0, 1.0",
+      1.0f, -1.0f, 
+      -1.0f, -1.0f, 
+      1.0f, 1.0f
+   );
+
    MyCircle circle(15);
 
    float cx, cy;
@@ -115,7 +154,9 @@ void MyWin::MainLoop() {
    
       AGLErrors("main-loopbegin");
       // =====================================================        Drawing
-      trian.draw();
+      trian1.draw();
+      trian2.draw();
+      
       circle.draw(tx, ty);
       cross.draw(cx,cy);
 
