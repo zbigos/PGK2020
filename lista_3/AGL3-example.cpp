@@ -16,7 +16,7 @@
 #include "shape_renderers/line.cpp"
 
 
-#define chunkcount 6
+#define chunkcount 10
 #define winsize 800
 #define chunksize ((winsize) / (chunkcount))
 // ==========================================================================
