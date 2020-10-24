@@ -13,6 +13,8 @@
 
 #include "shape_renderers/cross.cpp"
 #include "shape_renderers/circle.cpp"
+#include "shape_renderers/line.cpp"
+
 
 #define chunkcount 8
 #define winsize 800
@@ -78,8 +80,6 @@ public:
       );
       printf("%s", shaderb);
       compileShaders(shadera, shaderb);
-      //            
-
    }
    void draw() {
       bindProgram();
@@ -119,7 +119,7 @@ void MyWin::KeyCB(int key, int scancode, int action, int mods) {
 void MyWin::MainLoop() {
    ViewportOne(0,0,wd,ht);
 
-   MyCross cross;
+   MyLine line;
    MyTri   trian1(
       "1, 1, 1, 1.0", "0, 0, 0, 1.0",
       -1.0f, 1.0f, 
@@ -136,29 +136,22 @@ void MyWin::MainLoop() {
 
    MyCircle circle(15);
 
-   float cx, cy;
-   srand(time(NULL));
-   cx = float(random()%2000-1000)/1000.0;
-   cy = float(random()%2000-1000)/1000.0;
 
    float   tx=0.0, ty=0.0;
 
    do {
       // collision detection.
-      if ((SQ(cx - tx) + SQ(cy-ty)) < 0.09f) {
-         cx = float(random()%2000-1000)/1000.0;
-         cy = float(random()%2000-1000)/1000.0;
-      }
 
       glClear( GL_COLOR_BUFFER_BIT );
    
       AGLErrors("main-loopbegin");
       // =====================================================        Drawing
-      trian1.draw();
-      trian2.draw();
+      //trian1.draw();
+      //trian2.draw();
       
       circle.draw(tx, ty);
-      cross.draw(cx,cy);
+
+      line.draw(0.1, 0.1);
 
       AGLErrors("main-afterdraw");
 

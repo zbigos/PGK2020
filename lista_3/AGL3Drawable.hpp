@@ -13,6 +13,8 @@
 
    class AGLDrawable {
    public:
+      GLuint vaoId, vboId, eboId, pId;
+
       AGLDrawable(GLuint _pid=0) {
          pId=_pid;
          glGenVertexArrays(1, &vaoId);
@@ -71,7 +73,6 @@
 
    private:
       // VAO, VBO, Prog to clean in destructor
-      GLuint vaoId, vboId, eboId, pId;
 
       int compileShaders(GLuint v, GLuint f, GLuint g=0) {
          GLint Result = GL_FALSE;
