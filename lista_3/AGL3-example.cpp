@@ -16,7 +16,7 @@
 #include "shape_renderers/line.cpp"
 
 
-#define chunkcount 8
+#define chunkcount 6
 #define winsize 800
 #define chunksize ((winsize) / (chunkcount))
 // ==========================================================================
@@ -56,14 +56,14 @@ public:
          out vec4 color;
 
          void main(void) {
-            int ry = int(gl_FragCoord[0]/(800/8));
-            int rx = int(gl_FragCoord[1]/(800/8));
-            float oy = ry * (800/8) + ((800/8)/2);
-            float ox = rx * (800/8) + ((800/8)/2);
+            int ry = int(gl_FragCoord[0]/(800/%d));
+            int rx = int(gl_FragCoord[1]/(800/%d));
+            float oy = ry * (800/%d) + ((800/%d)/2);
+            float ox = rx * (800/%d) + ((800/%d)/2);
             float py = gl_FragCoord[0];
             float px = gl_FragCoord[1];
 
-            if(((px-ox)*(px-ox) + (py-oy)*(py-oy)) < 0.2*(800/8)*(800/8))
+            if(((px-ox)*(px-ox) + (py-oy)*(py-oy)) < 0.2*(800/%d)*(800/%d))
                if((rx+ry) % 2 == 0)
                   color = vec4(%s);
                else
@@ -76,6 +76,7 @@ public:
          } 
 
       )END", 
+      chunkcount, chunkcount, chunkcount, chunkcount, chunkcount, chunkcount, chunkcount, chunkcount,
       board_back, board_front, board_back, board_front
       );
       printf("%s", shaderb);
@@ -119,7 +120,8 @@ void MyWin::KeyCB(int key, int scancode, int action, int mods) {
 void MyWin::MainLoop() {
    ViewportOne(0,0,wd,ht);
 
-   MyLine line;
+   MyLine line(chunkcount, winsize);
+
    MyTri   trian1(
       "1, 1, 1, 1.0", "0, 0, 0, 1.0",
       -1.0f, 1.0f, 
@@ -146,12 +148,13 @@ void MyWin::MainLoop() {
    
       AGLErrors("main-loopbegin");
       // =====================================================        Drawing
-      //trian1.draw();
-      //trian2.draw();
-      
+      trian1.draw();
+      trian2.draw();
+
+      line.draw();
+
       circle.draw(tx, ty);
 
-      line.draw(0.1, 0.1);
 
       AGLErrors("main-afterdraw");
 

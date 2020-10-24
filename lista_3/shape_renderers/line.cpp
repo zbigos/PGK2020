@@ -30,9 +30,9 @@ layout(location = 3) uniform vec3  cross_color;
 
 class MyLine : public AGLDrawable {
 public:
-   MyLine() : AGLDrawable(0) {
+   MyLine(int chunkcount, int winsize) : AGLDrawable(0) {
       setShaders();
-      setBuffers();
+      setBuffers(chunkcount, winsize);
    }
    void setShaders() {
       compileShaders(R"END(
@@ -61,42 +61,38 @@ public:
          }
       )END");
    }
-   void setBuffers() {
-
+   void setBuffers(int chunkcount, int winsize) {
+      __chunkcount = chunkcount;
       int index = 0;
-      int instances = 100;
-      float translations[100][2];
-      for (int y = -10; y < 10; y += 2)
+      int instances = chunkcount * chunkcount;
+      float translations[chunkcount * chunkcount][2];
+      for (int y = 0; y < chunkcount; y += 1)
       {
-         for (int x = -10; x < 10; x += 2)
+         for (int x = 0; x < chunkcount; x += 1)
          {
-               translations[index][0] = (float)x / 10.0f;
-               translations[index][1] = (float)y / 10.0f;
+               translations[index][0] = -1.0 + (((float)x + 0.5) / (float)chunkcount *2.0);
+               translations[index][1] = -1.0 + (((float)y + 0.5) / (float)chunkcount *2.0);
+               printf("%lf %lf\n", translations[index][0], translations[index][1]);
                index++; 
          }
       }
 
     glGenBuffers(1, &eboId);
     glBindBuffer(GL_ARRAY_BUFFER, eboId);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 2 * 100, &translations[0], GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 2 * chunkcount * chunkcount, &translations[0], GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    float quadVertices[] = {
+    float linelength = 0.07;
+    float lineVertices[] = {
         // positions     // colors
-        -0.05f,  0.05f,  1.0f, 0.0f, 0.0f,
-         0.05f, -0.05f,  0.0f, 1.0f, 0.0f,
-        -0.05f, -0.05f,  0.0f, 0.0f, 1.0f,
-
-        -0.05f,  0.05f,  1.0f, 0.0f, 0.0f,
-         0.05f, -0.05f,  0.0f, 1.0f, 0.0f,
-         0.05f,  0.05f,  0.0f, 1.0f, 1.0f
+        -linelength,  0.0f,  1.0f, 0.0f, 0.0f,
+         linelength,  0.0f,  0.0f, 1.0f, 0.0f,
     };
 
     glGenVertexArrays(1, &vaoId);
     glGenBuffers(1, &vboId);
     glBindVertexArray(vaoId);
     glBindBuffer(GL_ARRAY_BUFFER, vboId);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(lineVertices), lineVertices, GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(1);
@@ -109,18 +105,18 @@ public:
     glVertexAttribDivisor(2, 1); // tell OpenGL this is an instanced vertex attribute.!
    }
 
-   void draw(float tx, float ty) {
-      printf("called\n");
+   void draw() {
 
       bindProgram();
       bindBuffers();
       //glDrawArrays(GL_LINES, 0, 2);
-      glDrawArraysInstanced(GL_TRIANGLES, 0, 6, 100); // 100 triangles of 6 vertices each
+      glDrawArraysInstanced(GL_LINES, 0, 2, __chunkcount * __chunkcount); // 100 triangles of 6 vertices each
    }
    void setColor(float r, float g, float b){
    }
  private:
    GLfloat cross_color[3] = { 1.0, 0.0, 0.0 };
+   float __chunkcount = 1;
 };
 
 #endif
