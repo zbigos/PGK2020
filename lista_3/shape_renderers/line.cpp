@@ -33,9 +33,9 @@ layout(location = 3) uniform vec3  cross_color;
 
 class MyLine : public AGLDrawable {
 public:
-   MyLine(int chunkcount, int winsize) : AGLDrawable(0) {
+   MyLine(int chunkcount, int winsize, float *collision_data) : AGLDrawable(0) {
       setShaders();
-      setBuffers(chunkcount, winsize);
+      setBuffers(chunkcount, winsize, collision_data);
    }
    void setShaders() {
       compileShaders(R"END(
@@ -65,11 +65,32 @@ public:
          }
       )END");
    }
-   void setBuffers(int chunkcount, int winsize) {
+   void setBuffers(int chunkcount, int winsize, float *collision_data) {
       __chunkcount = chunkcount;
-      int index = 0;
-      int instances = chunkcount * chunkcount;
-      float translations[chunkcount * chunkcount][4];
+      int index = 4;
+      int instances = chunkcount * chunkcount + 4;
+      float translations[chunkcount * chunkcount + 4][4];
+
+      translations[0][0] = -1.0;
+      translations[0][1] = -1.0;
+      translations[0][2] = -1.0;
+      translations[0][3] =  1.0;
+
+      translations[1][0] = 1.0;
+      translations[1][1] = -1.0;
+      translations[1][2] = -1.0;
+      translations[1][3] = -1.0;
+
+      translations[2][0] = 1.0;
+      translations[2][1] = 1.0;
+      translations[2][2] = 1.0;
+      translations[2][3] = -1.0;
+
+      translations[3][0] = -1.0;
+      translations[3][1] = 1.0;
+      translations[3][2] = 1.0;
+      translations[3][3] = 1.0;
+      
       for (int y = 0; y < chunkcount; y += 1)
       {
          for (int x = 0; x < chunkcount; x += 1)
@@ -78,38 +99,44 @@ public:
                int seed = random()%360;
                float cy = cos(PI * (360.0 * float(seed) / float(360)) / 180.0) * size_mod;
                float cx = sin(PI * (360.0 * float(seed) / float(360)) / 180.0) * size_mod;
-               printf("%lf %lf\n", cx, cy);
-
-               float Ox = -1.0 + (((float)x + 0.5) / (float)chunkcount *2.0);
-               float Oy = -1.0 + (((float)y + 0.5) / (float)chunkcount *2.0);
+               
+               float Ox = -1.0 + (((float)x + 0.5) / (float)chunkcount * 2.0);
+               float Oy = -1.0 + (((float)y + 0.5) / (float)chunkcount * 2.0);
 
                translations[index][0] = Ox + cx;
                translations[index][1] = Oy + cy;
                
                translations[index][2] = Ox - cx;
                translations[index][3] = Oy - cy;
-
-               printf("%lf %lf\n", translations[index][0], translations[index][1]);
                index++; 
          }
       }
+   
+    translations[4][0] = 100.0;
+    translations[4][1] = 100.0;
+    translations[4][2] = 100.0;
+    translations[4][3] = 100.0;
+
+    translations[chunkcount * chunkcount - 1][0] = 100.0;
+    translations[chunkcount * chunkcount - 1][1] = 100.0;
+    translations[chunkcount * chunkcount - 1][2] = 100.0;
+    translations[chunkcount * chunkcount - 1][3] = 100.0;
+    
+    for(int i = 0 ; i < (chunkcount * chunkcount) + 4; i++) {
+       for(int j = 0 ; j < 4; j++)
+          collision_data[4*i + j] = translations[i][j];
+    }
 
     glGenBuffers(1, &eboId);
     glBindBuffer(GL_ARRAY_BUFFER, eboId);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 4 * chunkcount * chunkcount, &translations[0], GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * (4 * chunkcount * chunkcount + 12), &translations[0], GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     float linelength = 0.07;
     float lineVertices[] = {
         // positions     // colors
-         0.0,  0.0f,  1.0f, 0.0f, 0.0f,
-         0.0,  0.0f,  0.0f, 1.0f, 0.0f,
+         0.0,  0.0f,  0.7f, 0.7f, 0.7f,
+         0.0,  0.0f,  0.7f, 0.7f, 0.7f,
     };
-
-    for(int i = 0 ; i < 2; i++) {
-       for(int j = 0 ; j < 5; j++)
-         printf("%lf ", lineVertices[i*5+j]);
-         printf("\n");
-    }
 
     glGenVertexArrays(1, &vaoId);
     glGenBuffers(1, &vboId);
@@ -129,18 +156,18 @@ public:
    }
 
    void draw() {
-
       bindProgram();
       bindBuffers();
       //glDrawArrays(GL_LINES, 0, 2);
       glLineWidth(4.0);
-      glDrawArraysInstanced(GL_LINES, 0, 2, __chunkcount * __chunkcount); // 100 triangles of 6 vertices each
+
+      glDrawArraysInstanced(GL_LINES, 0, 2, (__chunkcount * __chunkcount + 4)); // 100 triangles of 6 vertices each
    }
    void setColor(float r, float g, float b){
    }
  private:
    GLfloat cross_color[3] = { 1.0, 0.0, 0.0 };
-   float __chunkcount = 1;
+   int __chunkcount = 1;
 };
 
 #endif

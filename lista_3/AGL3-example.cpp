@@ -11,10 +11,12 @@
 #include <AGL3Window.hpp>
 #include <AGL3Drawable.hpp>
 
+#include <crossing.hpp>
+
 #include "shape_renderers/cross.cpp"
 #include "shape_renderers/circle.cpp"
 #include "shape_renderers/line.cpp"
-
+#include "shape_renderers/line_player.cpp"
 
 #define chunkcount 10
 #define winsize 800
@@ -22,6 +24,37 @@
 // ==========================================================================
 // Drawable object: no-data only: vertex/fragment programs
 // ==========================================================================
+int64_t HSVtoRGB(float H, float S,float V){
+    float s = S/100;
+    float v = V/100;
+    float C = s*v;
+    float X = C*(1-abs(fmod(H/60.0, 2)-1));
+    float m = v-C;
+    float r,g,b;
+    if(H >= 0 && H < 60){
+        r = C,g = X,b = 0;
+    }
+    else if(H >= 60 && H < 120){
+        r = X,g = C,b = 0;
+    }
+    else if(H >= 120 && H < 180){
+        r = 0,g = C,b = X;
+    }
+    else if(H >= 180 && H < 240){
+        r = 0,g = X,b = C;
+    }
+    else if(H >= 240 && H < 300){
+        r = X,g = 0,b = C;
+    }
+    else{
+        r = C,g = 0,b = X;
+    }
+    int R = (r+m)*255;
+    int G = (g+m)*255;
+    int B = (b+m)*255;
+    return B << 16 | G << 8 | R;
+}
+
 class MyTri : public AGLDrawable {
 public:
    MyTri(
@@ -117,32 +150,56 @@ void MyWin::KeyCB(int key, int scancode, int action, int mods) {
 
 #define SQ(x) ((x)*(x))
 // ==========================================================================
+
+bool check_collisions(float mlpx, float mlpy, float mlkx, float mlky, MyPlayer *obstacle_optional, float *collision_data) {
+   bool colliding = false;
+   for(int lineit = 0; lineit < chunkcount * chunkcount + 4; lineit++) {
+      Point pg1 = {mlpx, mlpy};
+      Point pg2 = {mlkx, mlky};
+      Point pq1 = {collision_data[lineit * 4 + 0], collision_data[lineit * 4 + 1]};
+      Point pq2 = {collision_data[lineit * 4 + 2], collision_data[lineit * 4 + 3]};
+      if(doIntersect(pg1, pq1, pg2, pq2)) {
+         obstacle_optional[lineit].forcedraw(
+            collision_data[lineit * 4 + 0], collision_data[lineit * 4 + 1], 
+            collision_data[lineit * 4 + 2], collision_data[lineit * 4 + 3]
+         );
+
+         colliding = true;
+      } else {
+         obstacle_optional[lineit].forcedraw(100.0, 100.0, 100.0, 100.0);
+      }
+   }
+
+   return colliding;
+} 
+
 void MyWin::MainLoop() {
    ViewportOne(0,0,wd,ht);
 
-   MyLine line(chunkcount, winsize);
+   float collision_data [chunkcount * chunkcount + 4][4];
+   MyLine line(chunkcount, winsize, *collision_data);
+   MyPlayer obstacle_optional[chunkcount * chunkcount + 4];
 
-   MyTri   trian1(
-      "1, 1, 1, 1.0", "0, 0, 0, 1.0",
-      -1.0f, 1.0f, 
-      -1.0f, -1.0f, 
-      1.0f, 1.0f
-   );
+   MyTri   trian1("1, 1, 1, 1.0", "0, 0, 0, 1.0", -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f);
+   MyTri   trian2("1, 1, 1, 1.0", "0, 0, 0, 1.0", 1.0f, -1.0f, -1.0f, -1.0f, 1.0f, 1.0f);
+   MyPlayer gracz;
+   MyPlayer endpoint;
 
-   MyTri   trian2(
-      "1, 1, 1, 1.0", "0, 0, 0, 1.0",
-      1.0f, -1.0f, 
-      -1.0f, -1.0f, 
-      1.0f, 1.0f
-   );
+   int endrot = 0;
+   float tx=1.0/float(chunkcount)-1.0, ty=1.0/float(chunkcount)-1.0;
+   float mlpx, mlpy, mlkx, mlky;
+   float elpx, elpy, elkx, elky;
 
-   MyCircle circle(15);
-
-
-   float   tx=0.0, ty=0.0;
+   int rot = 0;
+   bool last_colliding = false;
+   float rollback_tx, rollback_ty;
+   int rollback_rot;
 
    do {
-      // collision detection.
+
+      endrot += 3;
+      if (endrot > 360)
+         endrot = 0;
 
       glClear( GL_COLOR_BUFFER_BIT );
    
@@ -151,10 +208,32 @@ void MyWin::MainLoop() {
       trian1.draw();
       trian2.draw();
 
+      // assume that we won't hit a situation when one op does not equal full rot
+      if (rot > 360)
+         rot -= 360;
+      if (rot < -1)
+         rot += 360;
+
+      gracz.draw(rot, tx, ty, mlpx, mlpy, mlkx, mlky);
+
       line.draw();
 
-      circle.draw(tx, ty);
+      bool colliding = check_collisions(mlpx, mlpy, mlkx, mlky, obstacle_optional, *collision_data);
 
+      if (colliding and not last_colliding) { // jeśli dopiero teraz zacząłem kolidować to zapamiętuję pozycje do rollbackowania
+         rollback_tx = tx;
+         rollback_ty = ty;
+         rollback_rot = rot;
+      } else if (colliding and last_colliding) { //jeśli kolidowałem wtedy, i teraz nadal koliduję, to wykonuję rollback
+         tx = rollback_tx;
+         ty = rollback_ty;
+         rot = rollback_rot;
+      }
+
+      int64_t c = HSVtoRGB(float(endrot), 100, 100);
+      endpoint.setColor((float)((c >> 16) & 0xff)/255.0, (float)((c >> 8) & 0xff)/255.0, (float)(c & 0xff)/255.0);
+      endpoint.draw(endrot, 1.0-1.0/float(chunkcount), 1.0-1.0/float(chunkcount), elpx, elpy, elkx, elky);
+      
 
       AGLErrors("main-afterdraw");
 
@@ -162,21 +241,27 @@ void MyWin::MainLoop() {
       glfwPollEvents();
       //glfwWaitEvents();   
 
+      float movement_speed = 0.01f;
+
       if (glfwGetKey(win(), GLFW_KEY_DOWN ) == GLFW_PRESS) {
-         ty -= 0.01;
+         ty -= cos(PI * (360.0 * float(rot) / float(360)) / 180.0) * movement_speed;
+         tx += sin(PI * (360.0 * float(rot) / float(360)) / 180.0) * movement_speed;
       }
       
       if (glfwGetKey(win(), GLFW_KEY_UP ) == GLFW_PRESS) {
-         ty += 0.01;
+         ty += cos(PI * (360.0 * float(rot) / float(360)) / 180.0) * movement_speed;
+         tx -= sin(PI * (360.0 * float(rot) / float(360)) / 180.0) * movement_speed;
       }
       
       if (glfwGetKey(win(), GLFW_KEY_RIGHT ) == GLFW_PRESS) {
-         tx += 0.01;
+         rot += 3;
       }
       
       if (glfwGetKey(win(), GLFW_KEY_LEFT ) == GLFW_PRESS) {
-         tx -= 0.01;
+         rot -= 3;
       }
+
+      last_colliding = colliding;
    } while( glfwGetKey(win(), GLFW_KEY_ESCAPE ) != GLFW_PRESS &&
             glfwWindowShouldClose(win()) == 0 );
 }
