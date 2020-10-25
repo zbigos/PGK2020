@@ -7,6 +7,8 @@
 //===========================================================================
 #include <stdlib.h>
 #include <stdio.h>
+#include <ctype.h>
+#include <unistd.h>
 
 #include <AGL3Window.hpp>
 #include <AGL3Drawable.hpp>
@@ -18,9 +20,21 @@
 #include "shape_renderers/line.cpp"
 #include "shape_renderers/line_player.cpp"
 
-#define chunkcount 10
-#define winsize 800
-#define chunksize ((winsize) / (chunkcount))
+
+#ifdef _WIN32
+    #include <windows.h>
+#else
+    #include <unistd.h>
+#endif
+
+void wait( int useconds )
+{   // Pretty crossplatform, both ALL POSIX compliant systems AND Windows
+    #ifdef _WIN32
+        Sleep( 1000 * seconds );
+    #else
+        usleep( useconds );
+    #endif
+}
 // ==========================================================================
 // Drawable object: no-data only: vertex/fragment programs
 // ==========================================================================
@@ -85,18 +99,22 @@ public:
 
       sprintf(shaderb, R"END(
          #version 330 
+         #extension GL_ARB_explicit_uniform_location : require
+         #extension GL_ARB_shading_language_420pack : require
+
          in  vec4 gl_FragCoord;
+         layout(location = 0) uniform int cc;
          out vec4 color;
 
          void main(void) {
-            int ry = int(gl_FragCoord[0]/(800/%d));
-            int rx = int(gl_FragCoord[1]/(800/%d));
-            float oy = ry * (800/%d) + ((800/%d)/2);
-            float ox = rx * (800/%d) + ((800/%d)/2);
+            int ry = int(gl_FragCoord[0]/(800/cc));
+            int rx = int(gl_FragCoord[1]/(800/cc));
+            float oy = ry * (800/cc) + ((800/cc)/2);
+            float ox = rx * (800/cc) + ((800/cc)/2);
             float py = gl_FragCoord[0];
             float px = gl_FragCoord[1];
 
-            if(((px-ox)*(px-ox) + (py-oy)*(py-oy)) < 0.2*(800/%d)*(800/%d))
+            if(((px-ox)*(px-ox) + (py-oy)*(py-oy)) < 0.2*(800/cc)*(800/cc))
                if((rx+ry) % 2 == 0)
                   color = vec4(%s);
                else
@@ -109,14 +127,17 @@ public:
          } 
 
       )END", 
-      chunkcount, chunkcount, chunkcount, chunkcount, chunkcount, chunkcount, chunkcount, chunkcount,
       board_back, board_front, board_back, board_front
       );
       printf("%s", shaderb);
       compileShaders(shadera, shaderb);
    }
-   void draw() {
+   void draw(int chunkcount) {
       bindProgram();
+      bindBuffers();
+      printf("%d\n", chunkcount);
+      glUniform1i(0, chunkcount);
+
       glDrawArrays(GL_TRIANGLES, 0, 3);
    }
 };
@@ -133,7 +154,7 @@ public:
     MyWin(int _wd, int _ht, const char *name, int vers, int fullscr=0)
         : AGLWindow(_wd, _ht, name, vers, fullscr) {};
     virtual void KeyCB(int key, int scancode, int action, int mods);
-    void MainLoop();
+    void MainLoop(int chunkcount);
 };
 
 
@@ -151,7 +172,7 @@ void MyWin::KeyCB(int key, int scancode, int action, int mods) {
 #define SQ(x) ((x)*(x))
 // ==========================================================================
 
-bool check_collisions(float mlpx, float mlpy, float mlkx, float mlky, MyPlayer *obstacle_optional, float *collision_data) {
+bool check_collisions(float mlpx, float mlpy, float mlkx, float mlky, MyPlayer *obstacle_optional, float *collision_data, int chunkcount) {
    bool colliding = false;
    for(int lineit = 0; lineit < chunkcount * chunkcount + 4; lineit++) {
       Point pg1 = {mlpx, mlpy};
@@ -173,12 +194,15 @@ bool check_collisions(float mlpx, float mlpy, float mlkx, float mlky, MyPlayer *
    return colliding;
 } 
 
-void MyWin::MainLoop() {
+void MyWin::MainLoop(int chunkcount) {
+   bool intro = true;
+   int intro_chunkcount = 1;
+   int winsize = 800;
    ViewportOne(0,0,wd,ht);
 
    float collision_data [chunkcount * chunkcount + 4][4];
    MyLine line(chunkcount, winsize, *collision_data);
-   MyPlayer obstacle_optional[chunkcount * chunkcount + 4];
+   MyPlayer obstacle_optional[chunkcount * chunkcount + 8];
 
    MyTri   trian1("1, 1, 1, 1.0", "0, 0, 0, 1.0", -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f);
    MyTri   trian2("1, 1, 1, 1.0", "0, 0, 0, 1.0", 1.0f, -1.0f, -1.0f, -1.0f, 1.0f, 1.0f);
@@ -194,81 +218,139 @@ void MyWin::MainLoop() {
    bool last_colliding = false;
    float rollback_tx, rollback_ty;
    int rollback_rot;
-
+   int delay = 1000000;
    do {
-
-      endrot += 3;
-      if (endrot > 360)
-         endrot = 0;
-
       glClear( GL_COLOR_BUFFER_BIT );
    
       AGLErrors("main-loopbegin");
-      // =====================================================        Drawing
-      trian1.draw();
-      trian2.draw();
 
-      // assume that we won't hit a situation when one op does not equal full rot
-      if (rot > 360)
-         rot -= 360;
-      if (rot < -1)
-         rot += 360;
+      if (intro) {
+         trian1.draw(intro_chunkcount);
+         trian2.draw(intro_chunkcount);
 
-      gracz.draw(rot, tx, ty, mlpx, mlpy, mlkx, mlky);
+         wait(delay);
+         delay = (int)((float)delay*0.8);
+         intro_chunkcount ++;
+         if(chunkcount == intro_chunkcount)
+            intro = false;
 
-      line.draw();
+      } else {
+         endrot += 3;
+         if (endrot > 360)
+            endrot = 0;
 
-      bool colliding = check_collisions(mlpx, mlpy, mlkx, mlky, obstacle_optional, *collision_data);
 
-      if (colliding and not last_colliding) { // jeśli dopiero teraz zacząłem kolidować to zapamiętuję pozycje do rollbackowania
-         rollback_tx = tx;
-         rollback_ty = ty;
-         rollback_rot = rot;
-      } else if (colliding and last_colliding) { //jeśli kolidowałem wtedy, i teraz nadal koliduję, to wykonuję rollback
-         tx = rollback_tx;
-         ty = rollback_ty;
-         rot = rollback_rot;
-      }
+         // =====================================================        Drawing
+         trian1.draw(chunkcount);
+         trian2.draw(chunkcount);
 
-      int64_t c = HSVtoRGB(float(endrot), 100, 100);
-      endpoint.setColor((float)((c >> 16) & 0xff)/255.0, (float)((c >> 8) & 0xff)/255.0, (float)(c & 0xff)/255.0);
-      endpoint.draw(endrot, 1.0-1.0/float(chunkcount), 1.0-1.0/float(chunkcount), elpx, elpy, elkx, elky);
-      
+         // assume that we won't hit a situation when one op does not equal full rot
+         if (rot > 360)
+            rot -= 360;
+         if (rot < -1)
+            rot += 360;
+
+         gracz.draw(rot, tx, ty, mlpx, mlpy, mlkx, mlky);
+
+         line.draw();
+
+         bool colliding = check_collisions(mlpx, mlpy, mlkx, mlky, obstacle_optional, *collision_data, chunkcount);
+
+         if (colliding and not last_colliding) { // jeśli dopiero teraz zacząłem kolidować to zapamiętuję pozycje do rollbackowania
+            rollback_tx = tx;
+            rollback_ty = ty;
+            rollback_rot = rot;
+         } else if (colliding and last_colliding) { //jeśli kolidowałem wtedy, i teraz nadal koliduję, to wykonuję rollback
+            tx = rollback_tx;
+            ty = rollback_ty;
+            rot = rollback_rot;
+         }
+
+         int64_t c = HSVtoRGB(float(endrot), 100, 100);
+         endpoint.setColor((float)((c >> 16) & 0xff)/255.0, (float)((c >> 8) & 0xff)/255.0, (float)(c & 0xff)/255.0);
+         endpoint.draw(endrot, 1.0-1.0/float(chunkcount), 1.0-1.0/float(chunkcount), elpx, elpy, elkx, elky);
+         
+         //glfwWaitEvents();   
+
+         float movement_speed = 0.01f;
+
+         if (glfwGetKey(win(), GLFW_KEY_DOWN ) == GLFW_PRESS) {
+            ty -= cos(PI * (360.0 * float(rot) / float(360)) / 180.0) * movement_speed;
+            tx += sin(PI * (360.0 * float(rot) / float(360)) / 180.0) * movement_speed;
+         }
+         
+         if (glfwGetKey(win(), GLFW_KEY_UP ) == GLFW_PRESS) {
+            ty += cos(PI * (360.0 * float(rot) / float(360)) / 180.0) * movement_speed;
+            tx -= sin(PI * (360.0 * float(rot) / float(360)) / 180.0) * movement_speed;
+         }
+         
+         if (glfwGetKey(win(), GLFW_KEY_RIGHT ) == GLFW_PRESS) {
+            rot += 3;
+         }
+         
+         if (glfwGetKey(win(), GLFW_KEY_LEFT ) == GLFW_PRESS) {
+            rot -= 3;
+         }
+
+         last_colliding = colliding;
+         }
 
       AGLErrors("main-afterdraw");
 
       glfwSwapBuffers(win()); // =============================   Swap buffers
       glfwPollEvents();
-      //glfwWaitEvents();   
-
-      float movement_speed = 0.01f;
-
-      if (glfwGetKey(win(), GLFW_KEY_DOWN ) == GLFW_PRESS) {
-         ty -= cos(PI * (360.0 * float(rot) / float(360)) / 180.0) * movement_speed;
-         tx += sin(PI * (360.0 * float(rot) / float(360)) / 180.0) * movement_speed;
-      }
       
-      if (glfwGetKey(win(), GLFW_KEY_UP ) == GLFW_PRESS) {
-         ty += cos(PI * (360.0 * float(rot) / float(360)) / 180.0) * movement_speed;
-         tx -= sin(PI * (360.0 * float(rot) / float(360)) / 180.0) * movement_speed;
-      }
-      
-      if (glfwGetKey(win(), GLFW_KEY_RIGHT ) == GLFW_PRESS) {
-         rot += 3;
-      }
-      
-      if (glfwGetKey(win(), GLFW_KEY_LEFT ) == GLFW_PRESS) {
-         rot -= 3;
-      }
-
-      last_colliding = colliding;
    } while( glfwGetKey(win(), GLFW_KEY_ESCAPE ) != GLFW_PRESS &&
             glfwWindowShouldClose(win()) == 0 );
 }
 
 int main(int argc, char *argv[]) {
+   int boardsize = 0;
+   int aflag = 0;
+   int bflag = 0;
+   char *cvalue = NULL;
+   int index;
+   int c, opterr = 0;
+
+   while ((c = getopt (argc, argv, "s:")) != -1)
+    switch (c)
+      {
+      case 's':
+        cvalue = optarg;
+        break;
+      case '?':
+        if (optopt == 'c')
+          fprintf (stderr, "Option -%c requires an argument.\n", optopt);
+        else if (isprint (optopt))
+          fprintf (stderr, "Unknown option `-%c'.\n", optopt);
+        else
+          fprintf (stderr,
+                   "Unknown option character `\\x%x'.\n",
+                   optopt);
+        return 1;
+      default:
+         exit(1);
+      }
+
+   int chunkcount;
+   if (cvalue)
+      chunkcount = atoi(cvalue);
+   else
+      chunkcount = 10;
+
+   if (chunkcount > 16) {
+      printf("could you like, not activelly try to break the game?");
+      chunkcount = 16;
+   }
+
+   if (chunkcount < 2) {
+      printf("could you like, not activelly try to break the game?\n");
+      printf("this actually breaks shit, don't think I'll let you do that");
+      chunkcount = 3;
+   }
+
    MyWin win;
    win.Init(800,800,"AGL3 example",0,33);
-   win.MainLoop();
+   win.MainLoop(chunkcount);
    return 0;
 }

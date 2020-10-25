@@ -58,11 +58,11 @@ public:
       float cy = cos(PI * (360.0 * float(seed) / float(360)) / 180.0) * size_mod;
       float cx = sin(PI * (360.0 * float(seed) / float(360)) / 180.0) * size_mod;
       
-      mlpx = cx;
-      mlpy = -cy;
+      mlpx = cx*1.1;
+      mlpy = -cy*1.1;
 
-      mlkx = -cx;
-      mlky = cy;
+      mlkx = -cx*1.1;
+      mlky = cy*1.1;
 
       GLfloat vert[2][2] = {  // Cross lines
          { cx, -cy  },
