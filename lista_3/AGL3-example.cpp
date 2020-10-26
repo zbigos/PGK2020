@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <unistd.h>
+#include <string.h>
 
 #include <AGL3Window.hpp>
 #include <AGL3Drawable.hpp>
@@ -83,7 +84,7 @@ public:
    float a, float b, 
    float c, float d,
    float e, float f) {
-      char shadera[1024], shaderb[1024];
+      char shadera[2048], shaderb[2048];
 
       sprintf(shadera, R"END(
          #version 330 
@@ -104,6 +105,8 @@ public:
 
          in  vec4 gl_FragCoord;
          layout(location = 0) uniform int cc;
+         layout(location = 1) uniform float lv;
+
          out vec4 color;
 
          void main(void) {
@@ -114,7 +117,7 @@ public:
             float py = gl_FragCoord[0];
             float px = gl_FragCoord[1];
 
-            if(((px-ox)*(px-ox) + (py-oy)*(py-oy)) < 0.2*(800/cc)*(800/cc))
+            if(((px-ox)*(px-ox) + (py-oy)*(py-oy)) < lv*((800/cc)*(800/cc)))
                if((rx+ry) % 2 == 0)
                   color = vec4(%s);
                else
@@ -132,11 +135,12 @@ public:
       printf("%s", shaderb);
       compileShaders(shadera, shaderb);
    }
-   void draw(int chunkcount) {
+   void draw(int chunkcount, float level) {
       bindProgram();
       bindBuffers();
-      printf("%d\n", chunkcount);
       glUniform1i(0, chunkcount);
+      glUniform1f(1, level);
+      
 
       glDrawArrays(GL_TRIANGLES, 0, 3);
    }
@@ -154,7 +158,7 @@ public:
     MyWin(int _wd, int _ht, const char *name, int vers, int fullscr=0)
         : AGLWindow(_wd, _ht, name, vers, fullscr) {};
     virtual void KeyCB(int key, int scancode, int action, int mods);
-    void MainLoop(int chunkcount);
+    void MainLoop(int chunkcount, bool noclip, float level);
 };
 
 
@@ -194,14 +198,14 @@ bool check_collisions(float mlpx, float mlpy, float mlkx, float mlky, MyPlayer *
    return colliding;
 } 
 
-void MyWin::MainLoop(int chunkcount) {
+void MyWin::MainLoop(int chunkcount, bool noclip, float level) {
    bool intro = true;
    int intro_chunkcount = 1;
    int winsize = 800;
    ViewportOne(0,0,wd,ht);
 
    float collision_data [chunkcount * chunkcount + 4][4];
-   MyLine line(chunkcount, winsize, *collision_data);
+   MyLine line(chunkcount, winsize, *collision_data, level);
    MyPlayer obstacle_optional[chunkcount * chunkcount + 8];
 
    MyTri   trian1("1, 1, 1, 1.0", "0, 0, 0, 1.0", -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f);
@@ -218,15 +222,15 @@ void MyWin::MainLoop(int chunkcount) {
    bool last_colliding = false;
    float rollback_tx, rollback_ty;
    int rollback_rot;
-   int delay = 1000000;
+   int delay = 10;//00000;
    do {
       glClear( GL_COLOR_BUFFER_BIT );
    
       AGLErrors("main-loopbegin");
 
       if (intro) {
-         trian1.draw(intro_chunkcount);
-         trian2.draw(intro_chunkcount);
+         trian1.draw(intro_chunkcount, level);
+         trian2.draw(intro_chunkcount, level);
 
          wait(delay);
          delay = (int)((float)delay*0.8);
@@ -241,8 +245,8 @@ void MyWin::MainLoop(int chunkcount) {
 
 
          // =====================================================        Drawing
-         trian1.draw(chunkcount);
-         trian2.draw(chunkcount);
+         trian1.draw(chunkcount, level);
+         trian2.draw(chunkcount, level);
 
          // assume that we won't hit a situation when one op does not equal full rot
          if (rot > 360)
@@ -256,14 +260,16 @@ void MyWin::MainLoop(int chunkcount) {
 
          bool colliding = check_collisions(mlpx, mlpy, mlkx, mlky, obstacle_optional, *collision_data, chunkcount);
 
-         if (colliding and not last_colliding) { // jeśli dopiero teraz zacząłem kolidować to zapamiętuję pozycje do rollbackowania
-            rollback_tx = tx;
-            rollback_ty = ty;
-            rollback_rot = rot;
-         } else if (colliding and last_colliding) { //jeśli kolidowałem wtedy, i teraz nadal koliduję, to wykonuję rollback
-            tx = rollback_tx;
-            ty = rollback_ty;
-            rot = rollback_rot;
+         if (!noclip) {
+            if (colliding and not last_colliding) { // jeśli dopiero teraz zacząłem kolidować to zapamiętuję pozycje do rollbackowania
+               rollback_tx = tx;
+               rollback_ty = ty;
+               rollback_rot = rot;
+            } else if (colliding and last_colliding) { //jeśli kolidowałem wtedy, i teraz nadal koliduję, to wykonuję rollback
+               tx = rollback_tx;
+               ty = rollback_ty;
+               rot = rollback_rot;
+            }
          }
 
          int64_t c = HSVtoRGB(float(endrot), 100, 100);
@@ -309,14 +315,22 @@ int main(int argc, char *argv[]) {
    int aflag = 0;
    int bflag = 0;
    char *cvalue = NULL;
+   bool noclip = false;
    int index;
+   char *level = NULL;
    int c, opterr = 0;
 
-   while ((c = getopt (argc, argv, "s:")) != -1)
+   while ((c = getopt (argc, argv, "l:s:n")) != -1)
     switch (c)
       {
       case 's':
         cvalue = optarg;
+        break;
+      case 'l':
+        level = optarg;
+        break;
+      case 'n':
+        noclip = true;
         break;
       case '?':
         if (optopt == 'c')
@@ -349,8 +363,16 @@ int main(int argc, char *argv[]) {
       chunkcount = 3;
    }
 
+   float hardness = 1.0;
+   if (!strcmp(level, "easy")) hardness = 0.2;
+   else if (!strcmp(level, "normal")) hardness = 0.25;
+   else if (!strcmp(level, "hard")) hardness = 0.3;
+   else if (!strcmp(level, "hurtmeplenty")) hardness = 0.4;
+   else if (!strcmp(level, "papor")) hardness = 2137.0; // wait, what?   
+   else printf("idk what level is %s. Defaulting to normal\n", level);
+
    MyWin win;
    win.Init(800,800,"AGL3 example",0,33);
-   win.MainLoop(chunkcount);
+   win.MainLoop(chunkcount, noclip, hardness);
    return 0;
 }
