@@ -211,6 +211,8 @@ void MyWin::MainLoop(int chunkcount, bool noclip, float level) {
    MyTri   trian1("1, 1, 1, 1.0", "0, 0, 0, 1.0", -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f);
    MyTri   trian2("1, 1, 1, 1.0", "0, 0, 0, 1.0", 1.0f, -1.0f, -1.0f, -1.0f, 1.0f, 1.0f);
    MyPlayer gracz;
+
+   gracz.setColor(1.0, 1.0, 1.0);
    MyPlayer endpoint;
 
    int endrot = 0;
@@ -222,7 +224,7 @@ void MyWin::MainLoop(int chunkcount, bool noclip, float level) {
    bool last_colliding = false;
    float rollback_tx, rollback_ty;
    int rollback_rot;
-   int delay = 10;//00000;
+   int delay = 100000;//00000;
    do {
       glClear( GL_COLOR_BUFFER_BIT );
    
@@ -233,7 +235,7 @@ void MyWin::MainLoop(int chunkcount, bool noclip, float level) {
          trian2.draw(intro_chunkcount, level);
 
          wait(delay);
-         delay = (int)((float)delay*0.8);
+         delay = (int)((float)delay*0.95);
          intro_chunkcount ++;
          if(chunkcount == intro_chunkcount)
             intro = false;
@@ -363,13 +365,15 @@ int main(int argc, char *argv[]) {
       chunkcount = 3;
    }
 
-   float hardness = 1.0;
-   if (!strcmp(level, "easy")) hardness = 0.2;
-   else if (!strcmp(level, "normal")) hardness = 0.25;
-   else if (!strcmp(level, "hard")) hardness = 0.3;
-   else if (!strcmp(level, "hurtmeplenty")) hardness = 0.4;
-   else if (!strcmp(level, "papor")) hardness = 2137.0; // wait, what?   
-   else printf("idk what level is %s. Defaulting to normal\n", level);
+   float hardness = 0.25;
+   if (level) {
+      if (!strcmp(level, "easy")) hardness = 0.2;
+      else if (!strcmp(level, "normal")) hardness = 0.25;
+      else if (!strcmp(level, "hard")) hardness = 0.3;
+      else if (!strcmp(level, "hurtmeplenty")) hardness = 0.4;
+      else if (!strcmp(level, "papor")) hardness = 2137.0; // wait, what?   
+      else printf("idk what level is %s. Defaulting to normal\n", level);
+   }    else printf("idk what level is %s. Defaulting to normal\n", level);
 
    MyWin win;
    win.Init(800,800,"AGL3 example",0,33);

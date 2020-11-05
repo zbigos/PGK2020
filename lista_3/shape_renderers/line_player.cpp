@@ -31,22 +31,32 @@ public:
          layout(location = 0) in vec2 pos;
          layout(location = 0) uniform float scale;
          layout(location = 1) uniform vec2  center;
+         layout(location = 3) uniform vec3  cross_color;
          out vec4 vtex;
+         out vec3 icolor;
 
          void main(void) {
             vec2 p = (pos * scale + center);
             gl_Position = vec4(p, 0.0, 1.0);
+            if (cross_color[0] == 1.0 && cross_color[1] == 0.0 && cross_color[2] == 0.0) {
+               icolor = vec3(1.0, 0.0, 0.0);
+            } else if (cross_color[0] == 1.0 && cross_color[1] == 1.0 && cross_color[2] == 1.0) {
+               if (gl_VertexID % 2 == 0)
+                  icolor = vec3(0.0, 1.0, 0.0);
+               else
+                  icolor = vec3(0.0, 0.0, 1.0);
+            } else { icolor = vec3(cross_color); }
          }
 
       )END", R"END(
 
          #version 330 
          #extension GL_ARB_explicit_uniform_location : require
-         layout(location = 3) uniform vec3  cross_color;
          out vec4 color;
+         in vec3 icolor;
 
-         void main(void) {
-            color = vec4(cross_color,1.0);
+         void main(void) {            
+            color = vec4(icolor, 1.0);
          } 
 
       )END");
