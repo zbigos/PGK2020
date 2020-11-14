@@ -144,10 +144,15 @@ public:
    /* last line is drawn as a separate call, since it rotates and does rainbow shit 
     * no reason to have colliders for it as well. */
 
-   translations[chunkcount * chunkcount - 1][0] = 100.0;
-   translations[chunkcount * chunkcount - 1][1] = 100.0;
-   translations[chunkcount * chunkcount - 1][2] = 100.0;
-   translations[chunkcount * chunkcount - 1][3] = 100.0;
+   translations[chunkcount * chunkcount - 1 + 4][0] = 100.0;
+   translations[chunkcount * chunkcount - 1 + 4][1] = 100.0;
+   translations[chunkcount * chunkcount - 1 + 4][2] = 0.0;
+   translations[chunkcount * chunkcount - 1 + 4][3] = 0.0;
+   collision_data[(chunkcount * chunkcount - 1 + 4) * 4 + 0] = 100.0;
+   collision_data[(chunkcount * chunkcount - 1 + 4) * 4 + 1] = 100.0;
+   collision_data[(chunkcount * chunkcount - 1 + 4) * 4 + 2] = 100.0;
+   collision_data[(chunkcount * chunkcount - 1 + 4) * 4 + 3] = 100.0;
+
 
     glGenBuffers(1, &eboId);
     glBindBuffer(GL_ARRAY_BUFFER, eboId);
@@ -181,7 +186,7 @@ public:
       bindProgram();
       bindBuffers();
       //glDrawArrays(GL_LINES, 0, 2);
-      glLineWidth(4.0);
+      glLineWidth(3.0);
 
       glDrawArraysInstanced(GL_LINES, 0, 2, (__chunkcount * __chunkcount + 4)); // 100 triangles of 6 vertices each
    }

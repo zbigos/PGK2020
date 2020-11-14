@@ -20,7 +20,7 @@ public:
    MyPlayer() : AGLDrawable(0) {
       setShaders();
       __attribute__((unused)) float a,b,d,c;
-      setBuffers(0.0, a, b, c, d);
+      setBuffers(a, b, c, d);
    }
    void setShaders() {
       compileShaders(R"END(
@@ -61,10 +61,11 @@ public:
 
       )END");
    }
-   void setBuffers(float seed, float &mlpx, float &mlpy, float &mlkx, float &mlky) {
+   void setBuffers(float seed, float &mlpx, float &mlpy, float &mlkx, float &mlky, float scale, int chunkcount) {
       bindBuffers();
 
-      float size_mod = 1.0/16.0;
+      float blksize = 800 / chunkcount;
+      float size_mod = 0.07 * scale/0.22 * blksize/80.0;
       float cy = cos(PI * (360.0 * float(seed) / float(360)) / 180.0) * size_mod;
       float cx = sin(PI * (360.0 * float(seed) / float(360)) / 180.0) * size_mod;
       
@@ -122,8 +123,8 @@ public:
       glDrawArrays(GL_LINES, 0, 4);
    }
 
-   void draw(int rot, float px, float py, float &mlpx, float &mlpy, float &mlkx, float &mlky) {
-      setBuffers(rot, mlpx, mlpy, mlkx, mlky);
+   void draw(int rot, float px, float py, float scale, int chunkcount, float &mlpx, float &mlpy, float &mlkx, float &mlky) {
+      setBuffers(rot, mlpx, mlpy, mlkx, mlky, scale, chunkcount);
 
       bindProgram();
       bindBuffers();

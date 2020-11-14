@@ -178,20 +178,22 @@ void MyWin::KeyCB(int key, int scancode, int action, int mods) {
 
 bool check_collisions(float mlpx, float mlpy, float mlkx, float mlky, MyPlayer *obstacle_optional, float *collision_data, int chunkcount) {
    bool colliding = false;
-   for(int lineit = 0; lineit < chunkcount * chunkcount + 4; lineit++) {
+   for(int lineit = 0; lineit < chunkcount; lineit++) {
       Point pg1 = {mlpx, mlpy};
       Point pg2 = {mlkx, mlky};
       Point pq1 = {collision_data[lineit * 4 + 0], collision_data[lineit * 4 + 1]};
       Point pq2 = {collision_data[lineit * 4 + 2], collision_data[lineit * 4 + 3]};
       if(doIntersect(pg1, pq1, pg2, pq2)) {
-         obstacle_optional[lineit].forcedraw(
-            collision_data[lineit * 4 + 0], collision_data[lineit * 4 + 1], 
-            collision_data[lineit * 4 + 2], collision_data[lineit * 4 + 3]
-         );
+         if (obstacle_optional != NULL)
+            obstacle_optional[lineit].forcedraw(
+               collision_data[lineit * 4 + 0], collision_data[lineit * 4 + 1], 
+               collision_data[lineit * 4 + 2], collision_data[lineit * 4 + 3]
+            );
 
          colliding = true;
       } else {
-         obstacle_optional[lineit].forcedraw(100.0, 100.0, 100.0, 100.0);
+         if (obstacle_optional != NULL)
+            obstacle_optional[lineit].forcedraw(100.0, 100.0, 100.0, 100.0);
       }
    }
 
@@ -200,6 +202,7 @@ bool check_collisions(float mlpx, float mlpy, float mlkx, float mlky, MyPlayer *
 
 void MyWin::MainLoop(int chunkcount, bool noclip, float level) {
    bool intro = true;
+   bool outro = false;
    int intro_chunkcount = 1;
    int winsize = 800;
    ViewportOne(0,0,wd,ht);
@@ -225,12 +228,31 @@ void MyWin::MainLoop(int chunkcount, bool noclip, float level) {
    float rollback_tx, rollback_ty;
    int rollback_rot;
    int delay = 100000;//00000;
+   float mi = 0.0, ma = 0.5, dx = 0.007, state = level;
+   double last_time = 0.0;
    do {
+      double time = glfwGetTime();
+      double time_delta = time-last_time;
+      double desired = 1.0/60.0;
+      double rest = desired - time_delta;
+      printf("%lf\n", 1.0/time_delta);
+      //printf("current %lf desired %lf sleep for %lf\n", time_delta, desired, rest);
+      if (rest < 0) {
+      //   printf("the thread is running behind, 60fps was expected, currently running at %lf\n", 1.0/time_delta);
+      }
+      last_time = time;
       glClear( GL_COLOR_BUFFER_BIT );
    
       AGLErrors("main-loopbegin");
+      if (outro) {
+         state += dx;
+         if (state > ma) dx = -abs(dx);
+         if (state < mi) dx = abs(dx);
+         
+         trian1.draw(intro_chunkcount, state);
+         trian2.draw(intro_chunkcount, state);
 
-      if (intro) {
+      } else if (intro) {
          trian1.draw(intro_chunkcount, level);
          trian2.draw(intro_chunkcount, level);
 
@@ -256,12 +278,11 @@ void MyWin::MainLoop(int chunkcount, bool noclip, float level) {
          if (rot < -1)
             rot += 360;
 
-         gracz.draw(rot, tx, ty, mlpx, mlpy, mlkx, mlky);
+         gracz.draw(rot, tx, ty, level, chunkcount, mlpx, mlpy, mlkx, mlky);
 
          line.draw();
-
-         bool colliding = check_collisions(mlpx, mlpy, mlkx, mlky, obstacle_optional, *collision_data, chunkcount);
-
+         bool colliding = check_collisions(mlpx, mlpy, mlkx, mlky, obstacle_optional, *collision_data, chunkcount * chunkcount + 4);
+         
          if (!noclip) {
             if (colliding and not last_colliding) { // jeśli dopiero teraz zacząłem kolidować to zapamiętuję pozycje do rollbackowania
                rollback_tx = tx;
@@ -276,8 +297,16 @@ void MyWin::MainLoop(int chunkcount, bool noclip, float level) {
 
          int64_t c = HSVtoRGB(float(endrot), 100, 100);
          endpoint.setColor((float)((c >> 16) & 0xff)/255.0, (float)((c >> 8) & 0xff)/255.0, (float)(c & 0xff)/255.0);
-         endpoint.draw(endrot, 1.0-1.0/float(chunkcount), 1.0-1.0/float(chunkcount), elpx, elpy, elkx, elky);
+         endpoint.draw(endrot, 1.0-1.0/float(chunkcount), 1.0-1.0/float(chunkcount), level, chunkcount, elpx, elpy, elkx, elky);
+
          
+         float e_data[1][4] = {elpx, elpy, elkx, elky};
+         if (check_collisions(mlpx, mlpy, mlkx, mlky, NULL, *e_data, 1)) {
+            printf("brawo, wygrales w gre %ds\n", (int)glfwGetTime());
+            outro = true;
+         }
+
+
          //glfwWaitEvents();   
 
          float movement_speed = 0.01f;
@@ -293,11 +322,11 @@ void MyWin::MainLoop(int chunkcount, bool noclip, float level) {
          }
          
          if (glfwGetKey(win(), GLFW_KEY_RIGHT ) == GLFW_PRESS) {
-            rot += 3;
+            rot += 2;
          }
          
          if (glfwGetKey(win(), GLFW_KEY_LEFT ) == GLFW_PRESS) {
-            rot -= 3;
+            rot -= 2;
          }
 
          last_colliding = colliding;
@@ -321,8 +350,9 @@ int main(int argc, char *argv[]) {
    int index;
    char *level = NULL;
    int c, opterr = 0;
+   char *seedopt = NULL;
 
-   while ((c = getopt (argc, argv, "l:s:n")) != -1)
+   while ((c = getopt (argc, argv, "l:s:n:r:")) != -1)
     switch (c)
       {
       case 's':
@@ -331,6 +361,9 @@ int main(int argc, char *argv[]) {
       case 'l':
         level = optarg;
         break;
+      case 'r':
+         seedopt = optarg;
+         break;
       case 'n':
         noclip = true;
         break;
@@ -354,6 +387,11 @@ int main(int argc, char *argv[]) {
    else
       chunkcount = 10;
 
+   if (seedopt) {
+      printf("setting seed to %s\n", seedopt);
+      srand(atoi(seedopt));
+   }
+
    if (chunkcount > 16) {
       printf("could you like, not activelly try to break the game?");
       chunkcount = 16;
@@ -371,7 +409,6 @@ int main(int argc, char *argv[]) {
       else if (!strcmp(level, "normal")) hardness = 0.25;
       else if (!strcmp(level, "hard")) hardness = 0.3;
       else if (!strcmp(level, "hurtmeplenty")) hardness = 0.4;
-      else if (!strcmp(level, "papor")) hardness = 2137.0; // wait, what?   
       else printf("idk what level is %s. Defaulting to normal\n", level);
    }    else printf("idk what level is %s. Defaulting to normal\n", level);
 
