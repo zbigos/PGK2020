@@ -15,6 +15,9 @@
 
 class Cube {
     private:
+        float __cubescale;
+        int __cubesize;
+
         GLuint vertexbuffer;
         GLuint colorbuffer;
 
@@ -110,18 +113,16 @@ class Cube {
             };
 
             for(int e = 0; e < 12*3*3; e++)
-                g_color_buffer_data[e] *= 0.5f;
+                g_color_buffer_data[e] *= __cubescale/2.0f;
 
-            GLfloat instance_buffer_data[] = {
-                0.0, 0.0, 0.0,
-                1.0, 0.0, 0.0,
-                0.0, 1.0, 0.0,
-                0.0, 0.0, 1.0,
-                0.0, 1.0, 1.0,
-                1.0, 0.0, 1.0,
-                1.0, 1.0, 0.0,
-                1.0, 1.0, 1.0,
-            };
+            GLfloat instance_buffer_data[__cubesize*__cubesize*__cubesize][3];
+            for (int i = 0; i < __cubesize; i++)
+                for (int j = 0; j < __cubesize; j++)
+                    for (int k = 0; k < __cubesize; k++) {
+                        instance_buffer_data[k + j*__cubesize + i*__cubesize*__cubesize][0] = __cubescale * i;
+                        instance_buffer_data[k + j*__cubesize + i*__cubesize*__cubesize][1] = __cubescale * j;
+                        instance_buffer_data[k + j*__cubesize + i*__cubesize*__cubesize][2] = __cubescale * k;
+                    }
         
 
         bindBuffers();
@@ -187,7 +188,45 @@ class Cube {
     }
 
     public:
-        void init() {
+        void recommit_instance_buffer() {
+            printf("recommit invoked\n");
+            GLfloat instance_buffer_data[__cubesize*__cubesize*__cubesize][3];
+            for (int i = 0; i < __cubesize; i++)
+                for (int j = 0; j < __cubesize; j++)
+                    for (int k = 0; k < __cubesize; k++) {
+                        if (rand()%2 == 1) {
+                            instance_buffer_data[k + j*__cubesize + i*__cubesize*__cubesize][0] = __cubescale * i;
+                            instance_buffer_data[k + j*__cubesize + i*__cubesize*__cubesize][1] = __cubescale * j;
+                            instance_buffer_data[k + j*__cubesize + i*__cubesize*__cubesize][2] = __cubescale * k;
+                        } else {
+                            printf("eject\n");
+                            instance_buffer_data[k + j*__cubesize + i*__cubesize*__cubesize][0] = 10000.0;
+                            instance_buffer_data[k + j*__cubesize + i*__cubesize*__cubesize][1] = 10000.0;
+                            instance_buffer_data[k + j*__cubesize + i*__cubesize*__cubesize][2] = 10000.0;
+                        }
+                    }
+
+            glBindBuffer(GL_ARRAY_BUFFER, 0);            
+            glBindBuffer(GL_ARRAY_BUFFER, instancebuffer);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(instance_buffer_data), instance_buffer_data, GL_STATIC_DRAW);
+            // 3rd attribute buffer : instances
+            glEnableVertexAttribArray(2);
+            glVertexAttribPointer(
+                2,                                // attribute. No particular reason for 1, but must match the layout in the shader.
+                3,                                // size
+                GL_FLOAT,                         // type
+                GL_FALSE,                         // normalized?
+                0,                                // stride
+                (void*)0                          // array buffer offset
+            );
+
+            glVertexAttribDivisor(2, 1); // each cube is 12*3 verts long, so let this number of dudes pass. 
+            glBindBuffer(GL_ARRAY_BUFFER, 0);            
+        }
+
+        void init(int cubesize, float cubescale) {
+            __cubesize = cubesize;
+            __cubescale = cubescale;
             glGenVertexArrays(1, &vertexbuffer);
             glGenBuffers(1, &colorbuffer);
             glGenBuffers(1, &instancebuffer);
@@ -198,22 +237,16 @@ class Cube {
 
         //glm::mat4 Projection, glm::mat4 View, glm::mat4 Model
         void draw(float x, float y, float z, glm::mat4 &View) {
-            AGLErrors("arrayinit2");
-
 		    glUseProgram(programID);
-            //bindBuffers();
-            AGLErrors("binding failed");
+
 
             glm::mat4 Projection = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 100.0f);
-            // Camera matrix
-
             glm::mat4 Model      = glm::mat4(1.0);
             
             glm::mat4 MVP = Projection * View * Model;
     		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
             glUniform3f(PositionID, x, y, z);
 
-            glDrawArraysInstanced(GL_TRIANGLES, 0, 12*3, 8);
-            //glDrawArrays(GL_TRIANGLES, 0, 12*3);
+            glDrawArraysInstanced(GL_TRIANGLES, 0, 12*3, __cubesize * __cubesize * __cubesize);
         }
 };

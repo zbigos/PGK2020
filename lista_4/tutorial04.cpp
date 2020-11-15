@@ -78,8 +78,24 @@ void handle_controls() {
 }
 
 
+int* labirynth;
+int _labsize;
+
+void initialize_labirynth(int labsize, int stages) {
+    labirynth = (int *)malloc(sizeof(int) * labsize * labsize * labsize);
+    _labsize = labsize;
+
+    for(int i = 0 ; i < labsize; i++)
+        for(int j = 0 ; j < labsize; j++)
+            for(int k = 0 ; k < labsize; k++)
+                labirynth[labsize*labsize*i + labsize*j + k] = rand()%stages;
+}
+
 int main( void )
 {
+	int labsize = 16;
+	int labstage = 0;
+	initialize_labirynth(16, 10);
 
 	glfwInit();
 	glfwWindowHint(GLFW_SAMPLES, 4);
@@ -123,14 +139,34 @@ int main( void )
 	AGLErrors("uuuu");
 
 	Cube Ech;
-	Ech.init();
+	Ech.init(labsize, 15.0f);
 	float counter = 0;
 	float size_mod = 1.0;
 	float px = 0.0;
 	float py = 15.0;
 
+	float last_commit = glfwGetTime();
+
 	do{
 		handle_controls();
+
+		if (glfwGetKey( window, GLFW_KEY_O ) == GLFW_PRESS){
+			if (glfwGetTime() > last_commit + 1.0f) {
+				last_commit = glfwGetTime();
+				labstage = max(0, labstage - 1);
+				printf("entering labstage %d\n", labstage);
+				Ech.recommit_instance_buffer();
+			}
+		}
+		if (glfwGetKey( window, GLFW_KEY_P ) == GLFW_PRESS){
+			if (glfwGetTime() > last_commit + 1.0f) {
+				last_commit = glfwGetTime();
+				labstage = min(9, labstage + 1);
+				printf("entering labstage %d\n", labstage);
+				Ech.recommit_instance_buffer();
+			}
+		}
+
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
