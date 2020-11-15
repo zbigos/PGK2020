@@ -47,10 +47,10 @@ class Sphere {
         GLuint PositionID;
 
         void set_buffers() {
-            GLfloat g_vertex_buffer_data[20*3*3];
+            GLfloat g_color_buffer_data[20*3*3];
 
             // One color for each vertex. They were generated randomly.
-            GLfloat g_color_buffer_data[] = { 
+            static GLfloat g_vertex_buffer_data[] = { 
                 tridef(V0, V6, V1)
                 tridef(V0, V11, V6)
                 tridef(V1, V4, V0)
@@ -74,44 +74,42 @@ class Sphere {
             };
 
             for(int e = 0; e < 20*3*3; e++) {
-                g_color_buffer_data[e] *= __cubescale/2.0f;
-                g_vertex_buffer_data[e] = (float)(rand()%100)/100.0;
-                printf("%lf %lf\n", g_color_buffer_data[e],g_vertex_buffer_data[e]);
+                g_vertex_buffer_data[e] *= __cubescale/2.0f;
+                g_color_buffer_data[e] = (float)(rand()%100)/100.0;
             }
 
-        bindBuffers();
-
-        glBindVertexArray(vertexbuffer);
-        printf("%d -> %d\n",vertexbuffer, sizeof(g_color_buffer_data));
+ 
+        glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
         glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
-        AGLErrors("EVAA");
-        glEnableVertexAttribArray(1);
 
+        glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(g_color_buffer_data), g_color_buffer_data, GL_STATIC_DRAW);
+
+
+        AGLErrors("stuff failed in sphere.cpp");
+
+        glEnableVertexAttribArray(0);
+        glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);        
         glVertexAttribPointer(
-            1,                  // attribute. No particular reason for 0, but must match the layout in the shader.
+            0,                  // attribute. No particular reason for 0, but must match the layout in the shader.
             3,                  // size
             GL_FLOAT,           // type
             GL_FALSE,           // normalized?
             0,                  // stride
             (void*)0            // array buffer offset
         );
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-        glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
-        // 2nd attribute buffer : colors
-        glBufferData(GL_ARRAY_BUFFER, sizeof(g_color_buffer_data), g_color_buffer_data, GL_STATIC_DRAW);
-        glEnableVertexAttribArray(0);
+
+        glEnableVertexAttribArray(1);
+        glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);        
         glVertexAttribPointer(
-            0,                                // attribute. No particular reason for 1, but must match the layout in the shader.
+            1,                                // attribute. No particular reason for 1, but must match the layout in the shader.
             3,                                // size
             GL_FLOAT,                         // type
             GL_FALSE,                         // normalized?
             0,                                // stride
             (void*)0                          // array buffer offset
         );
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-    	AGLErrors("colorbuffer failed");
-
         // 1rst attribute buffer : vertices
 
     	AGLErrors("tu sie nie siedzi, tu sie inicjalizuje bufory");
@@ -127,7 +125,7 @@ class Sphere {
     }
 
     void bindBuffers() {
-        glBindVertexArray(vertexbuffer);
+        glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
         glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
     }
 
@@ -135,8 +133,12 @@ class Sphere {
         void init(int cubesize, float cubescale) {
             __cubesize = cubesize;
             __cubescale = cubescale;
-            glGenVertexArrays(1, &vertexbuffer);
+            glGenBuffers(1, &vertexbuffer);
             glGenBuffers(1, &colorbuffer);
+            
+            /* co do kurwy przepraszam bardzo */
+            glGenVertexArrays(1, &VertexArrayID);
+            glBindVertexArray(VertexArrayID);
 
             load_shaders();
             set_buffers();

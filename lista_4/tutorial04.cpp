@@ -34,6 +34,25 @@ glm::vec3 CameraDirection;
 glm::vec3 CameraPosition = vec3(0.0, 0.0, 0.0);
 glm::mat4 ViewMatrix;
 
+void MessageCallback( GLenum source,
+                 GLenum type,
+                 GLuint id,
+                 GLenum severity,
+                 GLsizei length,
+                 const GLchar* message,
+                 const void* userParam )
+{
+  fprintf( stderr, "GL CALLBACK: %s \n type = 0x%x, \nseverity = 0x%x, \nmessage = %s\n",
+           ( type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "" ),
+            type, severity, message );
+
+if (type == GL_DEBUG_TYPE_ERROR) {
+	int *a = NULL; // halt gdb. or entire system if kernel is not fast enough;
+	int payload = 2137;
+	*a = payload;
+}
+}
+
 void handle_controls() {
 	double mousex, mousey;
 	glfwGetCursorPos(window, &mousex, &mousey);
@@ -135,6 +154,9 @@ int main( void )
 	// Dark blue background
 	glClearColor(0.4f, 0.4f, 0.4f, 0.0f);
 
+	glEnable (GL_DEBUG_OUTPUT);
+	glDebugMessageCallback(MessageCallback, 0);
+
 	// Enable depth test
 	glEnable(GL_DEPTH_TEST);
 	// Accept fragment if it closer to the camera than the former one
@@ -160,7 +182,7 @@ int main( void )
 	Endpoint.init(10, 15.0f);
 	AGLErrors("yeeted while initializing endpoint");
 
-	Ech.init(labsize, 15.0f);
+	//Ech.init(labsize, 15.0f);
 	AGLErrors("yeeted while initializing board");
 
 	float counter = 0;
@@ -199,7 +221,7 @@ int main( void )
 
 	    AGLErrors("main-loopbegin");
 
-		Ech.draw(0.0, 0.0, 0.0f, ViewMatrix);
+		//Ech.draw(0.0, 0.0, 0.0f, ViewMatrix);
 	    AGLErrors("yeeted while processing board draw");
 
 		Endpoint.draw(0.0, 0.0, 0.0f, ViewMatrix);

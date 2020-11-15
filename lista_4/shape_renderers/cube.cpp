@@ -20,7 +20,6 @@ class Cube {
         int __cubesize;
 
         GLuint vertexbuffer;
-        GLuint colorbuffer;
 
         GLuint instancebuffer;
 
@@ -74,49 +73,8 @@ class Cube {
                 1.0f,-1.0f, 1.0f
             };
 
-            // One color for each vertex. They were generated randomly.
-            GLfloat g_color_buffer_data[] = { 
-                -1.0f,-1.0f,-1.0f,
-                -1.0f,-1.0f, 1.0f,
-                -1.0f, 1.0f, 1.0f,
-                1.0f, 1.0f,-1.0f,
-                -1.0f,-1.0f,-1.0f,
-                -1.0f, 1.0f,-1.0f,
-                1.0f,-1.0f, 1.0f,
-                -1.0f,-1.0f,-1.0f,
-                1.0f,-1.0f,-1.0f,
-                1.0f, 1.0f,-1.0f,
-                1.0f,-1.0f,-1.0f,
-                -1.0f,-1.0f,-1.0f,
-                -1.0f,-1.0f,-1.0f,
-                -1.0f, 1.0f, 1.0f,
-                -1.0f, 1.0f,-1.0f,
-                1.0f,-1.0f, 1.0f,
-                -1.0f,-1.0f, 1.0f,
-                -1.0f,-1.0f,-1.0f,
-                -1.0f, 1.0f, 1.0f,
-                -1.0f,-1.0f, 1.0f,
-                1.0f,-1.0f, 1.0f,
-                1.0f, 1.0f, 1.0f,
-                1.0f,-1.0f,-1.0f,
-                1.0f, 1.0f,-1.0f,
-                1.0f,-1.0f,-1.0f,
-                1.0f, 1.0f, 1.0f,
-                1.0f,-1.0f, 1.0f,
-                1.0f, 1.0f, 1.0f,
-                1.0f, 1.0f,-1.0f,
-                -1.0f, 1.0f,-1.0f,
-                1.0f, 1.0f, 1.0f,
-                -1.0f, 1.0f,-1.0f,
-                -1.0f, 1.0f, 1.0f,
-                1.0f, 1.0f, 1.0f,
-                -1.0f, 1.0f, 1.0f,
-                1.0f,-1.0f, 1.0f
-            };
-
             for(int e = 0; e < 12*3*3; e++) {
-                g_color_buffer_data[e] *= __cubescale/2.0f;
-                g_vertex_buffer_data[e] = (float)(rand()%100)/100.0;
+                g_vertex_buffer_data[e] *= __cubescale/2.0f;
             }
 
             GLfloat instance_buffer_data[__cubesize*__cubesize*__cubesize][3];
@@ -128,13 +86,20 @@ class Cube {
                         instance_buffer_data[k + j*__cubesize + i*__cubesize*__cubesize][2] =  k;
                     }
         
+        
+        AGLErrors("arrayop failed in cube.cpp");
 
         bindBuffers();
-        /*
+        AGLErrors("local bind_buffers failed in cube.cpp");
+
         // 1rst attribute buffer : vertices
-        glBindVertexArray(vertexbuffer);
+        glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+        AGLErrors("fp");
+
         glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
+
         glEnableVertexAttribArray(0);
+
         glVertexAttribPointer(
             0,                  // attribute. No particular reason for 0, but must match the layout in the shader.
             3,                  // size
@@ -144,10 +109,13 @@ class Cube {
             (void*)0            // array buffer offset
         );
         glBindBuffer(GL_ARRAY_BUFFER, 0);
-*/
-        glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
-        // 2nd attribute buffer : colors
-        glBufferData(GL_ARRAY_BUFFER, sizeof(g_color_buffer_data), g_color_buffer_data, GL_STATIC_DRAW);
+
+        AGLErrors("set_buffers attrib 0 failed in cube.cpp");
+
+
+        glBindBuffer(GL_ARRAY_BUFFER, instancebuffer);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(instance_buffer_data), instance_buffer_data, GL_STATIC_DRAW);
+        // 3rd attribute buffer : instances
         glEnableVertexAttribArray(1);
         glVertexAttribPointer(
             1,                                // attribute. No particular reason for 1, but must match the layout in the shader.
@@ -157,22 +125,11 @@ class Cube {
             0,                                // stride
             (void*)0                          // array buffer offset
         );
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        AGLErrors("set_buffers attrib 1 failed in cube.cpp");
 
-        glBindBuffer(GL_ARRAY_BUFFER, instancebuffer);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(instance_buffer_data), instance_buffer_data, GL_STATIC_DRAW);
-        // 3rd attribute buffer : instances
-        glEnableVertexAttribArray(2);
-        glVertexAttribPointer(
-            2,                                // attribute. No particular reason for 1, but must match the layout in the shader.
-            3,                                // size
-            GL_FLOAT,                         // type
-            GL_FALSE,                         // normalized?
-            0,                                // stride
-            (void*)0                          // array buffer offset
-        );
+        glVertexAttribDivisor(1, 1); // each cube is 12*3 verts long, so let this number of dudes pass. 
+        AGLErrors("Instantiation failed in cube.cpp");
 
-        glVertexAttribDivisor(2, 1); // each cube is 12*3 verts long, so let this number of dudes pass. 
         glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     }
@@ -188,9 +145,8 @@ class Cube {
     }
 
     void bindBuffers() {
-        glBindVertexArray(vertexbuffer);
-        glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, instancebuffer);
+        glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+        glBindBuffer(GL_ARRAY_BUFFER, instancebuffer);
     }
 
     public:
@@ -215,9 +171,9 @@ class Cube {
             glBindBuffer(GL_ARRAY_BUFFER, instancebuffer);
             glBufferData(GL_ARRAY_BUFFER, sizeof(instance_buffer_data), instance_buffer_data, GL_STATIC_DRAW);
             // 3rd attribute buffer : instances
-            glEnableVertexAttribArray(2);
+            glEnableVertexAttribArray(1);
             glVertexAttribPointer(
-                2,                                // attribute. No particular reason for 1, but must match the layout in the shader.
+                1,                                // attribute. No particular reason for 1, but must match the layout in the shader.
                 3,                                // size
                 GL_FLOAT,                         // type
                 GL_FALSE,                         // normalized?
@@ -232,14 +188,24 @@ class Cube {
         void init(int cubesize, float cubescale) {
             __cubesize = cubesize;
             __cubescale = cubescale;
-            glGenVertexArrays(1, &vertexbuffer);
-            glGenBuffers(1, &colorbuffer);
+            glGenBuffers(1, &vertexbuffer);
             glGenBuffers(1, &instancebuffer);
 
+            /* co do kurwy przepraszam bardzo */
+            glGenVertexArrays(1, &VertexArrayID);
+            glBindVertexArray(VertexArrayID);
+
+            AGLErrors("glGenBuffers failed in cube.cpp");
+
             load_shaders();
+            AGLErrors("load_shaders failed in cube.cpp");
+
             set_buffers();
-            
+            AGLErrors("set_buffers failed in cube.cpp");
+
             recommit_instance_buffer(1);
+            AGLErrors("recommit instance buffer failed in cube.cpp");
+
         }
 
         //glm::mat4 Projection, glm::mat4 View, glm::mat4 Model
