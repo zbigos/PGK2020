@@ -35,7 +35,7 @@ class Cube {
         GLuint PositionID;
 
         void set_buffers() {
-            static const GLfloat g_vertex_buffer_data[] = { 
+            GLfloat g_vertex_buffer_data[] = { 
                 -1.0f,-1.0f,-1.0f,
                 -1.0f,-1.0f, 1.0f,
                 -1.0f, 1.0f, 1.0f,
@@ -75,7 +75,7 @@ class Cube {
             };
 
             // One color for each vertex. They were generated randomly.
-            static GLfloat g_color_buffer_data[] = { 
+            GLfloat g_color_buffer_data[] = { 
                 -1.0f,-1.0f,-1.0f,
                 -1.0f,-1.0f, 1.0f,
                 -1.0f, 1.0f, 1.0f,
@@ -182,7 +182,7 @@ class Cube {
         PositionID = glGetUniformLocation(programID, "position");
         distance_scaleID = glGetUniformLocation(programID, "distance_scale");
 
-        printf("%d %d %d\n", MatrixID, PositionID, distance_scaleID);
+        printf("program %d, %d %d %d\n", programID, MatrixID, PositionID, distance_scaleID);
     }
 
     void bindBuffers() {
@@ -203,7 +203,6 @@ class Cube {
                             instance_buffer_data[k + j*__cubesize + i*__cubesize*__cubesize][1] =  j;
                             instance_buffer_data[k + j*__cubesize + i*__cubesize*__cubesize][2] =  k;
                         } else {
-                            printf("eject\n");
                             instance_buffer_data[k + j*__cubesize + i*__cubesize*__cubesize][0] = 10000.0;
                             instance_buffer_data[k + j*__cubesize + i*__cubesize*__cubesize][1] = 10000.0;
                             instance_buffer_data[k + j*__cubesize + i*__cubesize*__cubesize][2] = 10000.0;
@@ -238,13 +237,13 @@ class Cube {
             load_shaders();
             set_buffers();
             
-            recommit_instance_buffer(-1);
+            recommit_instance_buffer(1);
         }
 
         //glm::mat4 Projection, glm::mat4 View, glm::mat4 Model
         void draw(float x, float y, float z, glm::mat4 &View) {
 		    glUseProgram(programID);
-
+            bindBuffers();
 
             glm::mat4 Projection = glm::infinitePerspective(glm::radians(45.0f), 4.0f / 4.0f, 0.1f);
             glm::mat4 Model      = glm::mat4(1.0);

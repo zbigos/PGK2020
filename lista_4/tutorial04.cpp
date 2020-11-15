@@ -23,13 +23,15 @@ using namespace glm;
 #include <AGL3Drawable.hpp>
 
 #include "shape_renderers/cube.cpp"
+#include "shape_renderers/sphere.cpp"
+
 #include "tutorial4.hpp"
 
 float horizontalAngle = 3.14f;
 float verticalAngle = 0.0f;
 
 glm::vec3 CameraDirection;
-glm::vec3 CameraPosition = vec3(0.0, 15.0, 0.0);
+glm::vec3 CameraPosition = vec3(0.0, 0.0, 0.0);
 glm::mat4 ViewMatrix;
 
 void handle_controls() {
@@ -41,7 +43,14 @@ void handle_controls() {
 	
 	horizontalAngle -= mouseSpeed * float(1024/2 - mousex );
 	verticalAngle += mouseSpeed * float( 1024/2 - mousey );
+	
+	if (verticalAngle < 0.5 * 3.14)
+		verticalAngle = 0.5 * 3.14;
+	if (verticalAngle > 1.5 * 3.14)
+		verticalAngle = 1.5 * 3.14;
 
+
+	printf("horizontal %lf vertical %lf\n", horizontalAngle, verticalAngle);
 	CameraDirection = glm::vec3(
 		cos(verticalAngle) * sin(horizontalAngle), 
 		sin(verticalAngle),
@@ -81,7 +90,7 @@ void handle_controls() {
 }
 
 
-int maxlabstage = 16;
+int maxlabstage = 5;
 void initialize_labirynth(int labsize, int stages) {
     labirynth = (int *)malloc(sizeof(int) * labsize * labsize * labsize);
     _labsize = labsize;
@@ -99,7 +108,7 @@ void initialize_labirynth(int labsize, int stages) {
 int main( void )
 {
 	int labsize = 16;
-	int labstage = 0;
+	int labstage = 1;
 	initialize_labirynth(16, 10);
 
 	glfwInit();
@@ -141,10 +150,19 @@ int main( void )
 
 	// Our vertices. Tree consecutive floats give a 3D vertex; Three consecutive vertices give a triangle.
 	// A cube has 6 faces with 2 triangles each, so this makes 6*2=12 triangles, and 12*3 vertices
-	AGLErrors("uuuu");
+	AGLErrors("why the fuck would you fail now?");
 
 	Cube Ech;
-	Ech.init(labsize, 15.0f);
+	Sphere Endpoint;
+	AGLErrors("for some reason failed while initializing classes...");
+
+
+	Endpoint.init(10, 0.1f);
+	AGLErrors("yeeted while initializing endpoint");
+
+	//Ech.init(labsize, 15.0f);
+	AGLErrors("yeeted while initializing board");
+
 	float counter = 0;
 	float size_mod = 1.0;
 	float px = 0.0;
@@ -185,8 +203,13 @@ int main( void )
 		// in the "MVP" uniform
 
 		// Draw the triangle !
+		Endpoint.draw(0.0, 0.0, 0.0f, ViewMatrix);
+	    AGLErrors("yeeted while processing endpoint draw");
 
-		Ech.draw(px, py, 0.0f, ViewMatrix);
+		//Ech.draw(0.0, 0.0, 0.0f, ViewMatrix);
+	    AGLErrors("yeeted while processing board draw");
+
+		//Sphere.draw()
 		//Ech.draw(0.0, 0.0, 0.0f, View);
 
 		//glDisableVertexAttribArray(0);
@@ -205,9 +228,14 @@ int main( void )
 		}
 	}
 
-	} // Check if the ESC key was pressed or the window was closed
-	
-	while( gamebind > 0 &&
+	if (glfwGetKey( window, GLFW_KEY_TAB ) == GLFW_PRESS){
+		if (glfwGetTime() > last_commit + 1.0f) {
+			last_commit = glfwGetTime();
+			gamebind = 2;
+		}
+	}
+
+	} while( gamebind > 0 &&
 		   glfwWindowShouldClose(window) == 0 );
 
 	// Close OpenGL window and terminate GLFW
