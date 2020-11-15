@@ -38,7 +38,7 @@ void handle_controls() {
 	// Reset mouse position for next frame
 	glfwSetCursorPos(window, 1024/2, 1024/2);
 	
-	horizontalAngle += mouseSpeed * float(1024/2 - mousex );
+	horizontalAngle -= mouseSpeed * float(1024/2 - mousex );
 	verticalAngle += mouseSpeed * float( 1024/2 - mousey );
 
 	CameraDirection = glm::vec3(
