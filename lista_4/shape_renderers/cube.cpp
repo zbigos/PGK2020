@@ -114,8 +114,10 @@ class Cube {
                 1.0f,-1.0f, 1.0f
             };
 
-            for(int e = 0; e < 12*3*3; e++)
+            for(int e = 0; e < 12*3*3; e++) {
                 g_color_buffer_data[e] *= __cubescale/2.0f;
+                g_vertex_buffer_data[e] = (float)(rand()%100)/100.0;
+            }
 
             GLfloat instance_buffer_data[__cubesize*__cubesize*__cubesize][3];
             for (int i = 0; i < __cubesize; i++)
@@ -128,7 +130,7 @@ class Cube {
         
 
         bindBuffers();
-
+        /*
         // 1rst attribute buffer : vertices
         glBindVertexArray(vertexbuffer);
         glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
@@ -142,7 +144,7 @@ class Cube {
             (void*)0            // array buffer offset
         );
         glBindBuffer(GL_ARRAY_BUFFER, 0);
-
+*/
         glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
         // 2nd attribute buffer : colors
         glBufferData(GL_ARRAY_BUFFER, sizeof(g_color_buffer_data), g_color_buffer_data, GL_STATIC_DRAW);

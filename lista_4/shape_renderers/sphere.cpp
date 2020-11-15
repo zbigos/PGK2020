@@ -11,8 +11,20 @@
 #define PI 3.14159265
 
 /* compiler take the wheel */
+#define V0 -0.26286500f, 0.0000000f, 0.42532500f
+#define V1 0.26286500f, 0.0000000f, 0.42532500f
+#define V2 -0.26286500f, 0.0000000f, -0.42532500f
+#define V3 0.26286500f, 0.0000000f, -0.42532500f
+#define V4 0.0000000f, 0.42532500f, 0.26286500f
+#define V5 0.0000000f, 0.42532500f, -0.26286500f
+#define V6 0.0000000f, -0.42532500f, 0.26286500f
+#define V7 0.0000000f, -0.42532500f, -0.26286500f
+#define V8 0.42532500f, 0.26286500f, 0.0000000f
+#define V9 -0.42532500f, 0.26286500f, 0.0000000f
+#define V10 0.42532500f, -0.26286500f, 0.0000000f
+#define V11 -0.42532500f, -0.26286500f, 0.0000000f
 
-
+#define tridef(V1, V2, V3) V1, V2, V3,
 
 class Sphere {
     private:
@@ -35,98 +47,48 @@ class Sphere {
         GLuint PositionID;
 
         void set_buffers() {
-            GLfloat g_vertex_buffer_data[] = { 
-                -1.0f,-1.0f,-1.0f,
-                -1.0f,-1.0f, 1.0f,
-                -1.0f, 1.0f, 1.0f,
-                1.0f, 1.0f,-1.0f,
-                -1.0f,-1.0f,-1.0f,
-                -1.0f, 1.0f,-1.0f,
-                1.0f,-1.0f, 1.0f,
-                -1.0f,-1.0f,-1.0f,
-                1.0f,-1.0f,-1.0f,
-                1.0f, 1.0f,-1.0f,
-                1.0f,-1.0f,-1.0f,
-                -1.0f,-1.0f,-1.0f,
-                -1.0f,-1.0f,-1.0f,
-                -1.0f, 1.0f, 1.0f,
-                -1.0f, 1.0f,-1.0f,
-                1.0f,-1.0f, 1.0f,
-                -1.0f,-1.0f, 1.0f,
-                -1.0f,-1.0f,-1.0f,
-                -1.0f, 1.0f, 1.0f,
-                -1.0f,-1.0f, 1.0f,
-                1.0f,-1.0f, 1.0f,
-                1.0f, 1.0f, 1.0f,
-                1.0f,-1.0f,-1.0f,
-                1.0f, 1.0f,-1.0f,
-                1.0f,-1.0f,-1.0f,
-                1.0f, 1.0f, 1.0f,
-                1.0f,-1.0f, 1.0f,
-                1.0f, 1.0f, 1.0f,
-                1.0f, 1.0f,-1.0f,
-                -1.0f, 1.0f,-1.0f,
-                1.0f, 1.0f, 1.0f,
-                -1.0f, 1.0f,-1.0f,
-                -1.0f, 1.0f, 1.0f,
-                1.0f, 1.0f, 1.0f,
-                -1.0f, 1.0f, 1.0f,
-                1.0f,-1.0f, 1.0f
-            };
+            GLfloat g_vertex_buffer_data[20*3*3];
 
             // One color for each vertex. They were generated randomly.
             GLfloat g_color_buffer_data[] = { 
-                -1.0f,-1.0f,-1.0f,
-                -1.0f,-1.0f, 1.0f,
-                -1.0f, 1.0f, 1.0f,
-                1.0f, 1.0f,-1.0f,
-                -1.0f,-1.0f,-1.0f,
-                -1.0f, 1.0f,-1.0f,
-                1.0f,-1.0f, 1.0f,
-                -1.0f,-1.0f,-1.0f,
-                1.0f,-1.0f,-1.0f,
-                1.0f, 1.0f,-1.0f,
-                1.0f,-1.0f,-1.0f,
-                -1.0f,-1.0f,-1.0f,
-                -1.0f,-1.0f,-1.0f,
-                -1.0f, 1.0f, 1.0f,
-                -1.0f, 1.0f,-1.0f,
-                1.0f,-1.0f, 1.0f,
-                -1.0f,-1.0f, 1.0f,
-                -1.0f,-1.0f,-1.0f,
-                -1.0f, 1.0f, 1.0f,
-                -1.0f,-1.0f, 1.0f,
-                1.0f,-1.0f, 1.0f,
-                1.0f, 1.0f, 1.0f,
-                1.0f,-1.0f,-1.0f,
-                1.0f, 1.0f,-1.0f,
-                1.0f,-1.0f,-1.0f,
-                1.0f, 1.0f, 1.0f,
-                1.0f,-1.0f, 1.0f,
-                1.0f, 1.0f, 1.0f,
-                1.0f, 1.0f,-1.0f,
-                -1.0f, 1.0f,-1.0f,
-                1.0f, 1.0f, 1.0f,
-                -1.0f, 1.0f,-1.0f,
-                -1.0f, 1.0f, 1.0f,
-                1.0f, 1.0f, 1.0f,
-                -1.0f, 1.0f, 1.0f,
-                1.0f,-1.0f, 1.0f
+                tridef(V0, V6, V1)
+                tridef(V0, V11, V6)
+                tridef(V1, V4, V0)
+                tridef(V1, V8, V4)
+                tridef(V1, V10, V8)
+                tridef(V2, V5, V3)
+                tridef(V2, V9, V5)
+                tridef(V2, V11, V9)
+                tridef(V3, V7, V2)
+                tridef(V3, V10, V7)
+                tridef(V4, V8, V5)
+                tridef(V4, V9, V0)
+                tridef(V5, V8, V3)
+                tridef(V5, V9, V4)
+                tridef(V6, V10, V1)
+                tridef(V6, V11, V7)
+                tridef(V7, V10, V6)
+                tridef(V7, V11, V2)
+                tridef(V8, V10, V3)
+                tridef(V9, V11, V0)
             };
 
-            for(int e = 0; e < 12*3*3; e++) {
+            for(int e = 0; e < 20*3*3; e++) {
                 g_color_buffer_data[e] *= __cubescale/2.0f;
-                g_vertex_buffer_data[e] = 1.0f;
+                g_vertex_buffer_data[e] = (float)(rand()%100)/100.0;
+                printf("%lf %lf\n", g_color_buffer_data[e],g_vertex_buffer_data[e]);
             }
 
         bindBuffers();
 
-        // 1rst attribute buffer : vertices
         glBindVertexArray(vertexbuffer);
+        printf("%d -> %d\n",vertexbuffer, sizeof(g_color_buffer_data));
         glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
-        glEnableVertexAttribArray(0);
+        AGLErrors("EVAA");
+        glEnableVertexAttribArray(1);
+
         glVertexAttribPointer(
-            0,                  // attribute. No particular reason for 0, but must match the layout in the shader.
+            1,                  // attribute. No particular reason for 0, but must match the layout in the shader.
             3,                  // size
             GL_FLOAT,           // type
             GL_FALSE,           // normalized?
@@ -138,9 +100,9 @@ class Sphere {
         glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
         // 2nd attribute buffer : colors
         glBufferData(GL_ARRAY_BUFFER, sizeof(g_color_buffer_data), g_color_buffer_data, GL_STATIC_DRAW);
-        glEnableVertexAttribArray(1);
+        glEnableVertexAttribArray(0);
         glVertexAttribPointer(
-            1,                                // attribute. No particular reason for 1, but must match the layout in the shader.
+            0,                                // attribute. No particular reason for 1, but must match the layout in the shader.
             3,                                // size
             GL_FLOAT,                         // type
             GL_FALSE,                         // normalized?
@@ -148,6 +110,11 @@ class Sphere {
             (void*)0                          // array buffer offset
         );
         glBindBuffer(GL_ARRAY_BUFFER, 0);
+    	AGLErrors("colorbuffer failed");
+
+        // 1rst attribute buffer : vertices
+
+    	AGLErrors("tu sie nie siedzi, tu sie inicjalizuje bufory");
     }
 
     void load_shaders() {
@@ -155,15 +122,13 @@ class Sphere {
         
         MatrixID = glGetUniformLocation(programID, "MVP");
         PositionID = glGetUniformLocation(programID, "position");
-        distance_scaleID = glGetUniformLocation(programID, "distance_scale");
 
-        printf("program %d, %d %d %d\n", programID, MatrixID, PositionID, distance_scaleID);
+        printf("program %d, %d %d\n", programID, MatrixID, PositionID);
     }
 
     void bindBuffers() {
         glBindVertexArray(vertexbuffer);
         glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, instancebuffer);
     }
 
     public:
@@ -186,10 +151,13 @@ class Sphere {
             glm::mat4 Model      = glm::mat4(1.0);
             
             glm::mat4 MVP = Projection * View * Model;
+            AGLErrors("MVP calc failed in sphere.cpp");
+
     		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
             glUniform3f(PositionID, x, y, z);
-            glUniform1f(distance_scaleID, __cubescale);
-            glDrawArrays(GL_TRIANGLES, 0, 12*3);
+            AGLErrors("uniform dumps failed in sphere.cpp");
+
+            glDrawArrays(GL_TRIANGLES, 0, 20*3);
 
         }
 };

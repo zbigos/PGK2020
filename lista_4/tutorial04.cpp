@@ -157,10 +157,10 @@ int main( void )
 	AGLErrors("for some reason failed while initializing classes...");
 
 
-	Endpoint.init(10, 0.1f);
+	Endpoint.init(10, 15.0f);
 	AGLErrors("yeeted while initializing endpoint");
 
-	//Ech.init(labsize, 15.0f);
+	Ech.init(labsize, 15.0f);
 	AGLErrors("yeeted while initializing board");
 
 	float counter = 0;
@@ -199,41 +199,30 @@ int main( void )
 
 	    AGLErrors("main-loopbegin");
 
-		// Send our transformation to the currently bound shader, 
-		// in the "MVP" uniform
+		Ech.draw(0.0, 0.0, 0.0f, ViewMatrix);
+	    AGLErrors("yeeted while processing board draw");
 
-		// Draw the triangle !
 		Endpoint.draw(0.0, 0.0, 0.0f, ViewMatrix);
 	    AGLErrors("yeeted while processing endpoint draw");
 
-		//Ech.draw(0.0, 0.0, 0.0f, ViewMatrix);
-	    AGLErrors("yeeted while processing board draw");
-
-		//Sphere.draw()
-		//Ech.draw(0.0, 0.0, 0.0f, View);
-
-		//glDisableVertexAttribArray(0);
-		//glDisableVertexAttribArray(1);
-
-		// Swap buffers
 		AGLErrors("main-afterdraw");
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	
-	if (glfwGetKey( window, GLFW_KEY_ESCAPE ) == GLFW_PRESS){
-		if (glfwGetTime() > last_commit + 1.0f) {
-			last_commit = glfwGetTime();
-			gamebind -= 1;
+		if (glfwGetKey( window, GLFW_KEY_ESCAPE ) == GLFW_PRESS){
+			if (glfwGetTime() > last_commit + 1.0f) {
+				last_commit = glfwGetTime();
+				gamebind -= 1;
+			}
 		}
-	}
 
-	if (glfwGetKey( window, GLFW_KEY_TAB ) == GLFW_PRESS){
-		if (glfwGetTime() > last_commit + 1.0f) {
-			last_commit = glfwGetTime();
-			gamebind = 2;
+		if (glfwGetKey( window, GLFW_KEY_TAB ) == GLFW_PRESS){
+			if (glfwGetTime() > last_commit + 1.0f) {
+				last_commit = glfwGetTime();
+				gamebind = 2;
+			}
 		}
-	}
 
 	} while( gamebind > 0 &&
 		   glfwWindowShouldClose(window) == 0 );
