@@ -23,12 +23,13 @@ using namespace glm;
 #include <AGL3Drawable.hpp>
 
 #include "shape_renderers/cube.cpp"
+#include "tutorial4.hpp"
 
 float horizontalAngle = 3.14f;
 float verticalAngle = 0.0f;
 
 glm::vec3 CameraDirection;
-glm::vec3 CameraPosition;
+glm::vec3 CameraPosition = vec3(0.0, 15.0, 0.0);
 glm::mat4 ViewMatrix;
 
 void handle_controls() {
@@ -75,12 +76,12 @@ void handle_controls() {
 	glm::vec3 up = glm::cross(right, CameraDirection );
 	glm::vec3 eee = CameraPosition+CameraDirection;
 	ViewMatrix = glm::lookAt(CameraPosition, eee, up);	
+
+	printf("%lf %lf %lf\n", CameraPosition[0],  CameraPosition[1],  CameraPosition[2]);
 }
 
 
-int* labirynth;
-int _labsize;
-
+int maxlabstage = 16;
 void initialize_labirynth(int labsize, int stages) {
     labirynth = (int *)malloc(sizeof(int) * labsize * labsize * labsize);
     _labsize = labsize;
@@ -88,7 +89,11 @@ void initialize_labirynth(int labsize, int stages) {
     for(int i = 0 ; i < labsize; i++)
         for(int j = 0 ; j < labsize; j++)
             for(int k = 0 ; k < labsize; k++)
-                labirynth[labsize*labsize*i + labsize*j + k] = rand()%stages;
+                labirynth[labsize*labsize*i + labsize*j + k] = rand()%maxlabstage;
+	
+	labirynth[0] = maxlabstage;
+	labirynth[labsize*labsize*labsize-1] = maxlabstage;
+
 }
 
 int main( void )
@@ -127,7 +132,7 @@ int main( void )
 	glDepthFunc(GL_LESS); 
 
 	// Projection matrix : 45� Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
-	glm::mat4 Projection = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 100.0f);
+	glm::mat4 Projection = glm::infinitePerspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f);
 	// Camera matrix
 	// Model matrix : an identity matrix (model will be at the origin)
 	glm::mat4 Model      = glm::mat4(1.0);
@@ -146,24 +151,27 @@ int main( void )
 	float py = 15.0;
 
 	float last_commit = glfwGetTime();
+	
+	int gamebind = 2;
 
 	do{
-		handle_controls();
+		if (gamebind == 2)
+			handle_controls();
 
 		if (glfwGetKey( window, GLFW_KEY_O ) == GLFW_PRESS){
 			if (glfwGetTime() > last_commit + 1.0f) {
 				last_commit = glfwGetTime();
 				labstage = max(0, labstage - 1);
 				printf("entering labstage %d\n", labstage);
-				Ech.recommit_instance_buffer();
+				Ech.recommit_instance_buffer(labstage);
 			}
 		}
 		if (glfwGetKey( window, GLFW_KEY_P ) == GLFW_PRESS){
 			if (glfwGetTime() > last_commit + 1.0f) {
 				last_commit = glfwGetTime();
-				labstage = min(9, labstage + 1);
+				labstage = min(maxlabstage, labstage + 1);
 				printf("entering labstage %d\n", labstage);
-				Ech.recommit_instance_buffer();
+				Ech.recommit_instance_buffer(labstage);
 			}
 		}
 
@@ -189,8 +197,17 @@ int main( void )
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
+	
+	if (glfwGetKey( window, GLFW_KEY_ESCAPE ) == GLFW_PRESS){
+		if (glfwGetTime() > last_commit + 1.0f) {
+			last_commit = glfwGetTime();
+			gamebind -= 1;
+		}
+	}
+
 	} // Check if the ESC key was pressed or the window was closed
-	while( glfwGetKey(window, GLFW_KEY_ESCAPE ) != GLFW_PRESS &&
+	
+	while( gamebind > 0 &&
 		   glfwWindowShouldClose(window) == 0 );
 
 	// Close OpenGL window and terminate GLFW

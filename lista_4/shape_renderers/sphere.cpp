@@ -176,7 +176,7 @@ class Cube {
     }
 
     void load_shaders() {
-        programID = LoadShaders( "shaders/TransformVertexShader.vertexshader", "shaders/ColorFragmentShader.fragmentshader" );
+        programID = LoadShaders( "TransformVertexShader.vertexshader", "ColorFragmentShader.fragmentshader" );
         
         MatrixID = glGetUniformLocation(programID, "MVP");
         PositionID = glGetUniformLocation(programID, "position");
@@ -192,13 +192,13 @@ class Cube {
     }
 
     public:
-        void recommit_instance_buffer(int labstage) {
+        void recommit_instance_buffer() {
             printf("recommit invoked\n");
             GLfloat instance_buffer_data[__cubesize*__cubesize*__cubesize][3];
             for (int i = 0; i < __cubesize; i++)
                 for (int j = 0; j < __cubesize; j++)
                     for (int k = 0; k < __cubesize; k++) {
-                        if (labirynth[k + j*__cubesize + i*__cubesize*__cubesize] < labstage) {
+                        if (labirynth[k + j*__cubesize + i*__cubesize*__cubesize]) {
                             instance_buffer_data[k + j*__cubesize + i*__cubesize*__cubesize][0] =  i;
                             instance_buffer_data[k + j*__cubesize + i*__cubesize*__cubesize][1] =  j;
                             instance_buffer_data[k + j*__cubesize + i*__cubesize*__cubesize][2] =  k;
@@ -238,7 +238,7 @@ class Cube {
             load_shaders();
             set_buffers();
             
-            recommit_instance_buffer(-1);
+            recommit_instance_buffer();
         }
 
         //glm::mat4 Projection, glm::mat4 View, glm::mat4 Model
