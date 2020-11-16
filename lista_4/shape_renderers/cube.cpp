@@ -89,17 +89,16 @@ class Cube {
         
         AGLErrors("arrayop failed in cube.cpp");
 
-        bindBuffers();
-        AGLErrors("local bind_buffers failed in cube.cpp");
-
         // 1rst attribute buffer : vertices
         glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-        AGLErrors("fp");
-
         glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
 
-        glEnableVertexAttribArray(0);
+        glBindBuffer(GL_ARRAY_BUFFER, instancebuffer);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(instance_buffer_data), instance_buffer_data, GL_STATIC_DRAW);
 
+
+        glEnableVertexAttribArray(0);
+        glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
         glVertexAttribPointer(
             0,                  // attribute. No particular reason for 0, but must match the layout in the shader.
             3,                  // size
@@ -108,15 +107,11 @@ class Cube {
             0,                  // stride
             (void*)0            // array buffer offset
         );
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-        AGLErrors("set_buffers attrib 0 failed in cube.cpp");
 
 
-        glBindBuffer(GL_ARRAY_BUFFER, instancebuffer);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(instance_buffer_data), instance_buffer_data, GL_STATIC_DRAW);
         // 3rd attribute buffer : instances
         glEnableVertexAttribArray(1);
+        glBindBuffer(GL_ARRAY_BUFFER, instancebuffer);
         glVertexAttribPointer(
             1,                                // attribute. No particular reason for 1, but must match the layout in the shader.
             3,                                // size
@@ -125,13 +120,8 @@ class Cube {
             0,                                // stride
             (void*)0                          // array buffer offset
         );
-        AGLErrors("set_buffers attrib 1 failed in cube.cpp");
 
         glVertexAttribDivisor(1, 1); // each cube is 12*3 verts long, so let this number of dudes pass. 
-        AGLErrors("Instantiation failed in cube.cpp");
-
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-
     }
 
     void load_shaders() {
@@ -145,6 +135,7 @@ class Cube {
     }
 
     void bindBuffers() {
+        glBindVertexArray(VertexArrayID);
         glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
         glBindBuffer(GL_ARRAY_BUFFER, instancebuffer);
     }
@@ -167,10 +158,11 @@ class Cube {
                         }
                     }
 
-            glBindBuffer(GL_ARRAY_BUFFER, 0);            
+
             glBindBuffer(GL_ARRAY_BUFFER, instancebuffer);
             glBufferData(GL_ARRAY_BUFFER, sizeof(instance_buffer_data), instance_buffer_data, GL_STATIC_DRAW);
-            // 3rd attribute buffer : instances
+
+            glBindBuffer(GL_ARRAY_BUFFER, instancebuffer);
             glEnableVertexAttribArray(1);
             glVertexAttribPointer(
                 1,                                // attribute. No particular reason for 1, but must match the layout in the shader.
@@ -181,19 +173,20 @@ class Cube {
                 (void*)0                          // array buffer offset
             );
 
-            glVertexAttribDivisor(2, 1); // each cube is 12*3 verts long, so let this number of dudes pass. 
-            glBindBuffer(GL_ARRAY_BUFFER, 0);            
+            glVertexAttribDivisor(1, 1); // each cube is 12*3 verts long, so let this number of dudes pass. 
         }
 
         void init(int cubesize, float cubescale) {
             __cubesize = cubesize;
             __cubescale = cubescale;
-            glGenBuffers(1, &vertexbuffer);
-            glGenBuffers(1, &instancebuffer);
 
             /* co do kurwy przepraszam bardzo */
             glGenVertexArrays(1, &VertexArrayID);
             glBindVertexArray(VertexArrayID);
+            printf("VAOid = %d\n", VertexArrayID);
+
+            glGenBuffers(1, &vertexbuffer);
+            glGenBuffers(1, &instancebuffer);
 
             AGLErrors("glGenBuffers failed in cube.cpp");
 

@@ -125,6 +125,7 @@ class Sphere {
     }
 
     void bindBuffers() {
+        glBindVertexArray(VertexArrayID);       
         glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
         glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
     }
@@ -133,12 +134,16 @@ class Sphere {
         void init(int cubesize, float cubescale) {
             __cubesize = cubesize;
             __cubescale = cubescale;
-            glGenBuffers(1, &vertexbuffer);
-            glGenBuffers(1, &colorbuffer);
-            
+
             /* co do kurwy przepraszam bardzo */
             glGenVertexArrays(1, &VertexArrayID);
             glBindVertexArray(VertexArrayID);
+            printf("VAOid = %d\n", VertexArrayID);
+
+
+            glGenBuffers(1, &vertexbuffer);
+            glGenBuffers(1, &colorbuffer);
+            
 
             load_shaders();
             set_buffers();

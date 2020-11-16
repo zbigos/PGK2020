@@ -182,7 +182,7 @@ int main( void )
 	Endpoint.init(10, 15.0f);
 	AGLErrors("yeeted while initializing endpoint");
 
-	//Ech.init(labsize, 15.0f);
+	Ech.init(labsize, 2.0f);
 	AGLErrors("yeeted while initializing board");
 
 	float counter = 0;
@@ -193,7 +193,6 @@ int main( void )
 	float last_commit = glfwGetTime();
 	
 	int gamebind = 2;
-
 	do{
 		if (gamebind == 2)
 			handle_controls();
@@ -221,7 +220,7 @@ int main( void )
 
 	    AGLErrors("main-loopbegin");
 
-		//Ech.draw(0.0, 0.0, 0.0f, ViewMatrix);
+		Ech.draw(0.0, 0.0, 0.0f, ViewMatrix);
 	    AGLErrors("yeeted while processing board draw");
 
 		Endpoint.draw(0.0, 0.0, 0.0f, ViewMatrix);
