@@ -26,7 +26,7 @@ class Cube {
         GLuint VertexArrayID;
         GLuint ColorArrayID;
         GLuint InstanceArrayID;
-
+        GLuint cubesize_ID;
         GLuint distance_scaleID;
 
         GLuint programID;
@@ -130,6 +130,7 @@ class Cube {
         MatrixID = glGetUniformLocation(programID, "MVP");
         PositionID = glGetUniformLocation(programID, "position");
         distance_scaleID = glGetUniformLocation(programID, "distance_scale");
+        cubesize_ID = glGetUniformLocation(programID, "cube_size");
 
         printf("program %d, %d %d %d\n", programID, MatrixID, PositionID, distance_scaleID);
     }
@@ -213,6 +214,7 @@ class Cube {
     		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
             glUniform3f(PositionID, x, y, z);
             glUniform1f(distance_scaleID, __cubescale);
+            glUniform1f(cubesize_ID, __cubesize - 2.0f);
 
             glDrawArraysInstanced(GL_TRIANGLES, 0, 12*3, __cubesize * __cubesize * __cubesize);
         }

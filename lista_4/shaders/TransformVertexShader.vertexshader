@@ -11,6 +11,7 @@ out vec3 fragmentColor;
 uniform mat4 MVP;
 uniform vec3 position;
 uniform float distance_scale;
+uniform float cube_size;
 
 
 void main(){	
@@ -20,6 +21,12 @@ void main(){
 
 	// The color of each vertex will be interpolated
 	// to produce the color of each fragment
-	fragmentColor = instance_translation/16.0;
+	if (instance_translation[0] < 0.1 || instance_translation[1] < 0.1 || instance_translation[2] < 0.1) {
+		fragmentColor = vec3(0.0, 0.0, 0.0);
+	} else if (instance_translation[0] > cube_size || instance_translation[1] > cube_size || instance_translation[2] > cube_size) {
+		fragmentColor = vec3(0.0, 0.0, 0.0);
+	} else  {
+		fragmentColor = instance_translation/16.0;
+	}
 }
 

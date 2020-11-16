@@ -30,8 +30,11 @@ using namespace glm;
 float horizontalAngle = 3.14f;
 float verticalAngle = 0.0f;
 
+float blkscale = 15.0;
+int objcorner = 0;
+
 glm::vec3 CameraDirection;
-glm::vec3 CameraPosition = vec3(0.0, 0.0, 0.0);
+glm::vec3 CameraPosition = vec3(blkscale, blkscale, blkscale);
 glm::mat4 ViewMatrix;
 
 void MessageCallback( GLenum source,
@@ -109,19 +112,36 @@ void handle_controls() {
 }
 
 
-int maxlabstage = 5;
+int maxlabstage = 32;
 void initialize_labirynth(int labsize, int stages) {
+	labsize += 2;
+
     labirynth = (int *)malloc(sizeof(int) * labsize * labsize * labsize);
     _labsize = labsize;
 
     for(int i = 0 ; i < labsize; i++)
         for(int j = 0 ; j < labsize; j++)
             for(int k = 0 ; k < labsize; k++)
-                labirynth[labsize*labsize*i + labsize*j + k] = rand()%maxlabstage;
+				if((i == 0 || j == 0 || k == 0) || (i == labsize -1|| j == labsize-1 || k == labsize-1))
+	                labirynth[labsize*labsize*i + labsize*j + k] = -1;
+				else
+    	            labirynth[labsize*labsize*i + labsize*j + k] = rand()%maxlabstage;
 	
 	labirynth[0] = maxlabstage;
 	labirynth[labsize*labsize*labsize-1] = maxlabstage;
 
+}
+
+void check_collisions(glm::vec3 position, float blksize) {
+	float x = position[0];
+	float y = position[1];
+	float z = position[2];
+	
+	// bloki mają środki na punktach kratowych blksize, zaczynając od 0, 0
+	int blkx = round(x/blksize);
+	int blky = round(y/blksize);
+	int blkz = round(z/blksize);
+	printf("blkx = %d blky = %d blkz = %d\n", blkx, blky, blkz);
 }
 
 int main( void )
@@ -179,16 +199,14 @@ int main( void )
 	AGLErrors("for some reason failed while initializing classes...");
 
 
-	Endpoint.init(10, 15.0f);
+	Endpoint.init(10, blkscale);
 	AGLErrors("yeeted while initializing endpoint");
 
-	Ech.init(labsize, 2.0f);
+	Ech.init(labsize + 2, blkscale);
 	AGLErrors("yeeted while initializing board");
 
 	float counter = 0;
 	float size_mod = 1.0;
-	float px = 0.0;
-	float py = 15.0;
 
 	float last_commit = glfwGetTime();
 	
@@ -196,6 +214,8 @@ int main( void )
 	do{
 		if (gamebind == 2)
 			handle_controls();
+
+		check_collisions(CameraPosition, blkscale);
 
 		if (glfwGetKey( window, GLFW_KEY_O ) == GLFW_PRESS){
 			if (glfwGetTime() > last_commit + 1.0f) {
@@ -223,7 +243,13 @@ int main( void )
 		Ech.draw(0.0, 0.0, 0.0f, ViewMatrix);
 	    AGLErrors("yeeted while processing board draw");
 
-		Endpoint.draw(0.0, 0.0, 0.0f, ViewMatrix);
+		float coord = 0.0f;
+		if(objcorner == 0)
+			coord = blkscale * labsize;
+		else	
+			coord = blkscale;
+
+		Endpoint.draw(coord, coord, coord, ViewMatrix);
 	    AGLErrors("yeeted while processing endpoint draw");
 
 		AGLErrors("main-afterdraw");
