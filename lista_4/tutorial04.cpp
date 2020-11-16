@@ -33,6 +33,9 @@ float verticalAngle = 0.0f;
 float blkscale = 15.0;
 int objcorner = 0;
 
+Cube Ech;
+Sphere Endpoint;
+
 glm::vec3 CameraDirection;
 glm::vec3 CameraPosition = vec3(blkscale, blkscale, blkscale);
 glm::mat4 ViewMatrix;
@@ -130,18 +133,52 @@ void initialize_labirynth(int labsize, int stages) {
 	labirynth[0] = maxlabstage;
 	labirynth[labsize*labsize*labsize-1] = maxlabstage;
 
+    //for(int i = 0 ; i < labsize; i++) {
+	//	labirynth[labsize*labsize*i + labsize*1 + 1] = -1;
+	//}
+
 }
 
-void check_collisions(glm::vec3 position, float blksize) {
+int G(int a, int b, int c, int labsize) {
+	return labirynth[labsize*labsize*a + labsize*b + c];
+}
+// x, y, z nie
+
+void check_collisions(glm::vec3 position, float blksize, int labstage, int labsize) {
 	float x = position[0];
 	float y = position[1];
 	float z = position[2];
 	
+	float hitboxrange = 0.25;
+
 	// bloki mają środki na punktach kratowych blksize, zaczynając od 0, 0
 	int blkx = round(x/blksize);
 	int blky = round(y/blksize);
 	int blkz = round(z/blksize);
+	printf("px = %lf py = %lf pz = %lf\n", x, y, z);
 	printf("blkx = %d blky = %d blkz = %d\n", blkx, blky, blkz);
+	
+	Ech.recommit_instance_buffer(labstage);
+
+	if(G(blkx, blky, blkz, labsize) < labstage) {
+		printf("in block!\n");
+	}
+
+	// first degree neighbors, should be 6 (sides directly touching current square.)
+	if(G(blkx, blky, blkz+1, labsize) < labstage) { printf("block on +z!\n"); if(z > (blksize + hitboxrange)*blkz) printf("HARD_STOPa!"); }
+	if(G(blkx, blky, blkz-1, labsize) < labstage) { printf("block on -z!\n"); if(z < (blksize - hitboxrange)*blkz) printf("HARD_STOPb!");}	
+
+	if(G(blkx, blky+1, blkz, labsize) < labstage) { printf("block on +y!\n"); if(y > (blksize + hitboxrange)*blky) printf("HARD_STOPc!");}
+	if(G(blkx, blky-1, blkz, labsize) < labstage) { printf("block on -y!\n"); if(y < (blksize - hitboxrange)*blky) printf("HARD_STOPd!");}
+
+	if(G(blkx+1, blky, blkz, labsize) < labstage) { printf("block on +x!\n"); if(x > (blksize + hitboxrange)*blkx) printf("HARD_STOPe!");}
+	if(G(blkx-1, blky, blkz, labsize) < labstage) { printf("block on -x!\n"); if(x < (blksize - hitboxrange)*blkx) printf("HARD_STOPf!");}
+
+	// second degree neighbors, should be 12 (sides touching edge of current square.)
+
+
+	// third degree neighbors, should be 8 (sides touching corner of current square.)
+
 }
 
 int main( void )
@@ -194,11 +231,6 @@ int main( void )
 	// A cube has 6 faces with 2 triangles each, so this makes 6*2=12 triangles, and 12*3 vertices
 	AGLErrors("why the fuck would you fail now?");
 
-	Cube Ech;
-	Sphere Endpoint;
-	AGLErrors("for some reason failed while initializing classes...");
-
-
 	Endpoint.init(10, blkscale);
 	AGLErrors("yeeted while initializing endpoint");
 
@@ -215,7 +247,7 @@ int main( void )
 		if (gamebind == 2)
 			handle_controls();
 
-		check_collisions(CameraPosition, blkscale);
+		check_collisions(CameraPosition, blkscale, labstage, labsize + 2);
 
 		if (glfwGetKey( window, GLFW_KEY_O ) == GLFW_PRESS){
 			if (glfwGetTime() > last_commit + 1.0f) {
