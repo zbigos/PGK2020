@@ -150,15 +150,9 @@ class Sphere {
         }
 
         //glm::mat4 Projection, glm::mat4 View, glm::mat4 Model
-        void draw(float x, float y, float z, glm::mat4 &View) {
+        void draw(float x, float y, float z, glm::mat4 MVP) {
 		    glUseProgram(programID);
             bindBuffers();
-
-            glm::mat4 Projection = glm::infinitePerspective(glm::radians(45.0f), 4.0f / 4.0f, 0.1f);
-            glm::mat4 Model      = glm::mat4(1.0);
-            
-            glm::mat4 MVP = Projection * View * Model;
-            AGLErrors("MVP calc failed in sphere.cpp");
 
     		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
             glUniform3f(PositionID, x, y, z);
