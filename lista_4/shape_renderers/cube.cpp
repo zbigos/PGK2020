@@ -6,7 +6,7 @@
 
 #include "../AGL3Window.hpp"
 #include "../AGL3Drawable.hpp"
-#include "tutorial4.hpp"
+#include "zadanie4.hpp"
 
 #define PI 3.14159265
 
@@ -181,7 +181,6 @@ class Cube {
             __cubesize = cubesize;
             __cubescale = cubescale;
 
-            /* co do kurwy przepraszam bardzo */
             glGenVertexArrays(1, &VertexArrayID);
             glBindVertexArray(VertexArrayID);
             printf("VAOid = %d\n", VertexArrayID);

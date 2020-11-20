@@ -6,7 +6,7 @@
 
 #include "../AGL3Window.hpp"
 #include "../AGL3Drawable.hpp"
-#include "tutorial4.hpp"
+#include "zadanie4.hpp"
 
 #define PI 3.14159265
 
@@ -50,7 +50,7 @@ class Sphere {
             GLfloat g_color_buffer_data[20*3*3];
 
             // One color for each vertex. They were generated randomly.
-            static GLfloat g_vertex_buffer_data[] = { 
+            GLfloat g_vertex_buffer_data[] = { 
                 tridef(V0, V6, V1)
                 tridef(V0, V11, V6)
                 tridef(V1, V4, V0)
@@ -135,11 +135,9 @@ class Sphere {
             __cubesize = cubesize;
             __cubescale = cubescale;
 
-            /* co do kurwy przepraszam bardzo */
             glGenVertexArrays(1, &VertexArrayID);
             glBindVertexArray(VertexArrayID);
             printf("VAOid = %d\n", VertexArrayID);
-
 
             glGenBuffers(1, &vertexbuffer);
             glGenBuffers(1, &colorbuffer);
@@ -149,7 +147,6 @@ class Sphere {
             set_buffers();
         }
 
-        //glm::mat4 Projection, glm::mat4 View, glm::mat4 Model
         void draw(float x, float y, float z, glm::mat4 MVP) {
 		    glUseProgram(programID);
             bindBuffers();
