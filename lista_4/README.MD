@@ -1,3 +1,5 @@
+<img src="https://github.com/zbigos/PGK2020/blob/master/lista_4/screen.png" width="500" height="500">
+
 ## Compiling
 Just run `make`. If you need to recompile after some changes you'll need to `make clean` first.  
 Due to the fact that I cannot use c++, fiels in `shapes/` are simply jammed into `zadanie4.cpp` by preprocessor.  
