@@ -1,0 +1,32 @@
+#version 330 core
+
+// Input vertex data, different for all executions of this shader.
+layout(location = 0) in vec3 vertexPosition_modelspace;
+layout(location = 1) in vec3 instance_translation;
+
+
+// Output data ; will be interpolated for each fragment.
+out vec3 fragmentColor;
+// Values that stay constant for the whole mesh.
+uniform mat4 MVP;
+uniform vec3 position;
+uniform float distance_scale;
+uniform float cube_size;
+
+
+void main(){	
+
+	// Output position of the vertex, in clip space : MVP * position
+	gl_Position =  MVP * vec4((vertexPosition_modelspace + position + distance_scale*instance_translation), 1);
+
+	// The color of each vertex will be interpolated
+	// to produce the color of each fragment
+	if (instance_translation[0] < 0.1 || instance_translation[1] < 0.1 || instance_translation[2] < 0.1) {
+		fragmentColor = vec3(0.0, 0.0, 0.0);
+	} else if (instance_translation[0] > cube_size || instance_translation[1] > cube_size || instance_translation[2] > cube_size) {
+		fragmentColor = vec3(0.0, 0.0, 0.0);
+	} else  {
+		fragmentColor = instance_translation/16.0;
+	}
+}
+
