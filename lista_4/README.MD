@@ -32,4 +32,4 @@ if (type == GL_DEBUG_TYPE_ERROR) {
 }
 ```
 
-if for any reason you get this to execute (and this code will segfault your machine) please send me result of gdb bt on this code. This will help greatly with debugging any issues.  
+if for any reason you get this to execute (and this code will force your machine to SIGSEGV this process) please send me result of gdb bt on this code. This will help greatly with debugging any issues.  
