@@ -2,7 +2,7 @@
 
 ## Compiling
 Just run `make`. If you need to recompile after some changes you'll need to `make clean` first.  
-Due to the fact that I cannot use c++, fiels in `shapes/` are simply jammed into `zadanie4.cpp` by preprocessor.  
+Due to the fact that I don't know how to use c++, files in `shapes/` are simply jammed into `zadanie4.cpp` by preprocessor.  
 
 ## Gameplay.
 At every point of the game you can press esc key to release mouse pointer from the game. If you wish to bind it again use tab.  
