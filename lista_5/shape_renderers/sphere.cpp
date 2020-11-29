@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include <tuple>
 #include <math.h>
 
 #include "../AGL3Window.hpp"
@@ -9,22 +10,6 @@
 #include "zadanie4.hpp"
 
 #define PI 3.14159265
-
-/* compiler take the wheel */
-#define V0 -0.26286500f, 0.0000000f, 0.42532500f
-#define V1 0.26286500f, 0.0000000f, 0.42532500f
-#define V2 -0.26286500f, 0.0000000f, -0.42532500f
-#define V3 0.26286500f, 0.0000000f, -0.42532500f
-#define V4 0.0000000f, 0.42532500f, 0.26286500f
-#define V5 0.0000000f, 0.42532500f, -0.26286500f
-#define V6 0.0000000f, -0.42532500f, 0.26286500f
-#define V7 0.0000000f, -0.42532500f, -0.26286500f
-#define V8 0.42532500f, 0.26286500f, 0.0000000f
-#define V9 -0.42532500f, 0.26286500f, 0.0000000f
-#define V10 0.42532500f, -0.26286500f, 0.0000000f
-#define V11 -0.42532500f, -0.26286500f, 0.0000000f
-
-#define tridef(V1, V2, V3) V1, V2, V3,
 
 class Sphere {
     private:
@@ -46,45 +31,94 @@ class Sphere {
         GLuint MatrixID;
         GLuint PositionID;
 
+        int triangle_count = 0;
+
         void set_buffers() {
-            GLfloat g_color_buffer_data[20*3*3];
+            std::vector<std::vector<std::tuple<GLfloat, GLfloat, GLfloat>>> Point_set;
+            std::vector<std::tuple<GLfloat, GLfloat, GLfloat>> points;
 
-            // One color for each vertex. They were generated randomly.
-            GLfloat g_vertex_buffer_data[] = { 
-                tridef(V0, V6, V1)
-                tridef(V0, V11, V6)
-                tridef(V1, V4, V0)
-                tridef(V1, V8, V4)
-                tridef(V1, V10, V8)
-                tridef(V2, V5, V3)
-                tridef(V2, V9, V5)
-                tridef(V2, V11, V9)
-                tridef(V3, V7, V2)
-                tridef(V3, V10, V7)
-                tridef(V4, V8, V5)
-                tridef(V4, V9, V0)
-                tridef(V5, V8, V3)
-                tridef(V5, V9, V4)
-                tridef(V6, V10, V1)
-                tridef(V6, V11, V7)
-                tridef(V7, V10, V6)
-                tridef(V7, V11, V2)
-                tridef(V8, V10, V3)
-                tridef(V9, V11, V0)
-            };
+            /* generate the points on a sphere */
+            int resolution = 20;
+            Point_set.resize(resolution);
+            
 
-            for(int e = 0; e < 20*3*3; e++) {
-                g_vertex_buffer_data[e] *= __cubescale/2.0f;
-                g_color_buffer_data[e] = (float)(rand()%100)/100.0;
+            /* for obvious reason we don't use resolution < 2*/
+            for(int i = 0; i < resolution; i++) {
+                float hangle = (float)i * (180.0 / (float)resolution); /* god I hope that this is obvious to me when I have to debug this garbage */
+                GLfloat z = cos(PI * hangle/180.0);
+                GLfloat scale = sin(PI * hangle/180.0);
+
+                for(int j = 0; j < resolution + 2; j++) {
+                    float angle = j * (360.0/resolution);
+                    GLfloat x = sin(PI * angle/180.0) * scale;
+                    GLfloat y = cos(PI * angle/180.0) * scale;
+                    
+                    Point_set[i].push_back(std::make_tuple((GLfloat)x, (GLfloat)y, (GLfloat)z));
+                }
             }
 
- 
+            /* once we have the poinset we will generate the points coorddump */
+            for(int i = 0; i < resolution - 1; i++) {
+                for(int j = 0; j < resolution + 1; j++) { /* oh lord please save us from segmentation faults*/
+                    // A ......... B (< i+1)
+                    //
+                    //
+                    //
+                    // C ......... D (< i)
+
+                    /* A C D triangle*/
+                    std::tuple<GLfloat, GLfloat, GLfloat> p1; 
+                    std::tuple<GLfloat, GLfloat, GLfloat> p2;
+                    std::tuple<GLfloat, GLfloat, GLfloat> p3;
+                    
+                    p1 = Point_set[i][j];  // C
+                    p2 = Point_set[i][j + 1]; // D
+                    p3 = Point_set[i+1][j]; // A
+                    
+                    printf("");
+
+                    points.push_back(p1);
+                    points.push_back(p2);
+                    points.push_back(p3);
+                    
+                    // do stuffs.
+                    /* A B D */
+                    p1 = Point_set[i][j+1]; // D
+                    p2 = Point_set[i+1][j]; // A
+                    p3 = Point_set[i+1][j+1]; // B
+                    points.push_back(p1);
+                    points.push_back(p2);
+                    points.push_back(p3);
+                    
+                }
+            }
+
+            size_t datacount = 3*points.size();
+            printf("%d points\n", datacount);
+
+            /* dump these objects into a buffer */
+            GLfloat g_vertex_buffer_data[datacount];
+            GLfloat g_color_buffer_data[datacount];
+
+            for(int j = 0; j < points.size(); j++) {
+                g_color_buffer_data[3*j + 0] = (GLfloat)(rand()%1000)/1000.0;
+                g_color_buffer_data[3*j + 1] = (GLfloat)(rand()%1000)/1000.0;
+                g_color_buffer_data[3*j + 2] = (GLfloat)(rand()%1000)/1000.0;
+                
+                GLfloat a, b, c;
+                std::tie(a, b, c) = points[j];
+                g_vertex_buffer_data[3*j + 0] = a;
+                g_vertex_buffer_data[3*j + 1] = b;
+                g_vertex_buffer_data[3*j + 2] = c;
+            }
+
+        triangle_count = points.size();
+
         glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
         glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
 
         glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
         glBufferData(GL_ARRAY_BUFFER, sizeof(g_color_buffer_data), g_color_buffer_data, GL_STATIC_DRAW);
-
 
         AGLErrors("stuff failed in sphere.cpp");
 
@@ -155,7 +189,7 @@ class Sphere {
             glUniform3f(PositionID, x, y, z);
             AGLErrors("uniform dumps failed in sphere.cpp");
 
-            glDrawArrays(GL_TRIANGLES, 0, 20*3);
+            glDrawArrays(GL_TRIANGLES, 0, triangle_count);
 
         }
 };
