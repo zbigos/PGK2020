@@ -18,7 +18,7 @@ uniform float cube_size;
 void main(){	
 
 	// Output position of the vertex, in clip space : MVP * position
-	gl_Position =  MVP * vec4((vertexPosition_modelspace * (1.0 + instance_translation[2]/25.0) + position + instance_translation), 1);
+	gl_Position =  MVP * vec4((vertexPosition_modelspace * (3.0 - instance_translation[1]/25.0) + position + instance_translation), 1);
 
 	// The color of each vertex will be interpolated
 	// to produce the color of each fragment

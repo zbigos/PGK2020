@@ -32,7 +32,9 @@ class Sphere {
         GLuint PositionID;
 
         int triangle_count = 0;
-        int instances = 100;
+        const int instances = 100;
+        bool initialized = false;
+        GLfloat *instance_buffer_data;
 
         void set_buffers() {
             std::vector<std::vector<std::tuple<GLfloat, GLfloat, GLfloat>>> Point_set;
@@ -152,32 +154,43 @@ class Sphere {
     }
     
     void commit_instance_buffer() {
-            GLfloat instance_buffer_data[instances][3];
 
+        if (!initialized) {
+            instance_buffer_data = new GLfloat[instances * 3];
+            
             for(int i = 0; i < instances; i++) {
-                float a = (float)(rand()%500)/10.0;
-                instance_buffer_data[i][0] = a;
-                a = (float)(rand()%500)/10.0;
-                instance_buffer_data[i][1] = a;
-                a = (float)(rand()%500)/10.0;
-                instance_buffer_data[i][2] = a;
+                instance_buffer_data[i * 3 + 0] = (float)(rand()%500)/10.0;
+                instance_buffer_data[i * 3 + 1] = (float)(rand()%500)/10.0;
+                instance_buffer_data[i * 3 + 2] = (float)(rand()%500)/10.0;
             }
 
-            glBindBuffer(GL_ARRAY_BUFFER, instancebuffer);
-            glBufferData(GL_ARRAY_BUFFER, sizeof(instance_buffer_data), instance_buffer_data, GL_STATIC_DRAW);
+            initialized = true;
+        } else {
+            for(int i = 0; i < instances; i++) {
+                instance_buffer_data[i * 3 + 1] -= 0.1f;
+                if (instance_buffer_data[i * 3 + 1] < 0.0) {
+                    instance_buffer_data[i * 3 + 1] = 50.0;
+                    instance_buffer_data[i * 3 + 0] = (float)(rand()%500)/10.0;
+                    instance_buffer_data[i * 3 + 2] = (float)(rand()%500)/10.0;
+                }
+            }
+        }
 
-            glBindBuffer(GL_ARRAY_BUFFER, instancebuffer);
-            glEnableVertexAttribArray(2);
-            glVertexAttribPointer(
-                2,                                // attribute. No particular reason for 1, but must match the layout in the shader.
-                3,                                // size
-                GL_FLOAT,                         // type
-                GL_FALSE,                         // normalized?
-                0,                                // stride
-                (void*)0                          // array buffer offset
-            );
+        glBindBuffer(GL_ARRAY_BUFFER, instancebuffer);
+        glBufferData(GL_ARRAY_BUFFER, 3 * sizeof(GLfloat) * instances, instance_buffer_data, GL_STATIC_DRAW);
 
-            glVertexAttribDivisor(2, 1); 
+        glBindBuffer(GL_ARRAY_BUFFER, instancebuffer);
+        glEnableVertexAttribArray(2);
+        glVertexAttribPointer(
+            2,                                // attribute. No particular reason for 1, but must match the layout in the shader.
+            3,                                // size
+            GL_FLOAT,                         // type
+            GL_FALSE,                         // normalized?
+            0,                                // stride
+            (void*)0                          // array buffer offset
+        );
+
+        glVertexAttribDivisor(2, 1); 
     }
 
     void load_shaders() {
@@ -215,8 +228,11 @@ class Sphere {
         }
 
         void draw(float x, float y, float z, glm::mat4 MVP) {
+
 		    glUseProgram(programID);
             bindBuffers();
+
+            commit_instance_buffer();
 
     		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
             glUniform3f(PositionID, x, y, z);
