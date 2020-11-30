@@ -32,6 +32,7 @@ class Sphere {
         GLuint PositionID;
 
         int triangle_count = 0;
+        int instances = 100;
 
         void set_buffers() {
             std::vector<std::vector<std::tuple<GLfloat, GLfloat, GLfloat>>> Point_set;
@@ -133,7 +134,7 @@ class Sphere {
             (void*)0            // array buffer offset
         );
 
-
+        
         glEnableVertexAttribArray(1);
         glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);        
         glVertexAttribPointer(
@@ -147,10 +148,40 @@ class Sphere {
         // 1rst attribute buffer : vertices
 
     	AGLErrors("tu sie nie siedzi, tu sie inicjalizuje bufory");
+        
+    }
+    
+    void commit_instance_buffer() {
+            GLfloat instance_buffer_data[instances][3];
+
+            for(int i = 0; i < instances; i++) {
+                float a = (float)(rand()%500)/10.0;
+                instance_buffer_data[i][0] = a;
+                a = (float)(rand()%500)/10.0;
+                instance_buffer_data[i][1] = a;
+                a = (float)(rand()%500)/10.0;
+                instance_buffer_data[i][2] = a;
+            }
+
+            glBindBuffer(GL_ARRAY_BUFFER, instancebuffer);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(instance_buffer_data), instance_buffer_data, GL_STATIC_DRAW);
+
+            glBindBuffer(GL_ARRAY_BUFFER, instancebuffer);
+            glEnableVertexAttribArray(2);
+            glVertexAttribPointer(
+                2,                                // attribute. No particular reason for 1, but must match the layout in the shader.
+                3,                                // size
+                GL_FLOAT,                         // type
+                GL_FALSE,                         // normalized?
+                0,                                // stride
+                (void*)0                          // array buffer offset
+            );
+
+            glVertexAttribDivisor(2, 1); 
     }
 
     void load_shaders() {
-        programID = LoadShaders( "shaders/TransformVertexShaderSphere.vertexshader", "shaders/ColorFragmentShaderSphere.fragmentshader" );
+        programID = LoadShaders( "shaders/TransformVertexShader.vertexshader", "shaders/ColorFragmentShader.fragmentshader" );
         
         MatrixID = glGetUniformLocation(programID, "MVP");
         PositionID = glGetUniformLocation(programID, "position");
@@ -162,6 +193,7 @@ class Sphere {
         glBindVertexArray(VertexArrayID);       
         glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
         glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
+        glBindBuffer(GL_ARRAY_BUFFER, instancebuffer);
     }
 
     public:
@@ -175,10 +207,11 @@ class Sphere {
 
             glGenBuffers(1, &vertexbuffer);
             glGenBuffers(1, &colorbuffer);
-            
+            glGenBuffers(1, &instancebuffer);
 
             load_shaders();
             set_buffers();
+            commit_instance_buffer();
         }
 
         void draw(float x, float y, float z, glm::mat4 MVP) {
@@ -189,7 +222,8 @@ class Sphere {
             glUniform3f(PositionID, x, y, z);
             AGLErrors("uniform dumps failed in sphere.cpp");
 
-            glDrawArrays(GL_TRIANGLES, 0, triangle_count);
+            //glDrawArrays(GL_TRIANGLES, 0, triangle_count);
+            glDrawArraysInstanced(GL_TRIANGLES, 0, triangle_count, instances);
 
         }
 };
