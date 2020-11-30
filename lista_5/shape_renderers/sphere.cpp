@@ -96,12 +96,12 @@ class Sphere {
                 }
             }
 
-            size_t datacount = 3*points.size();
+            size_t datacount = points.size();
             printf("%d points\n", datacount);
 
             /* dump these objects into a buffer */
-            GLfloat g_vertex_buffer_data[datacount];
-            GLfloat g_color_buffer_data[datacount];
+            GLfloat g_vertex_buffer_data[datacount * 3];
+            GLfloat g_color_buffer_data[datacount * 3];
 
             for(int j = 0; j < points.size(); j++) {
                 g_color_buffer_data[3*j + 0] = (GLfloat)(rand()%1000)/1000.0;
@@ -156,22 +156,25 @@ class Sphere {
     void commit_instance_buffer() {
 
         if (!initialized) {
-            instance_buffer_data = new GLfloat[instances * 3];
+            instance_buffer_data = new GLfloat[instances * 4];
             
             for(int i = 0; i < instances; i++) {
-                instance_buffer_data[i * 3 + 0] = (float)(rand()%500)/10.0;
-                instance_buffer_data[i * 3 + 1] = (float)(rand()%500)/10.0;
-                instance_buffer_data[i * 3 + 2] = (float)(rand()%500)/10.0;
+                instance_buffer_data[i * 4 + 0] = (float)(rand()%500)/10.0;
+                instance_buffer_data[i * 4 + 1] = (float)(rand()%500)/10.0;
+                instance_buffer_data[i * 4 + 2] = (float)(rand()%500)/10.0;
+                instance_buffer_data[i * 4 + 3] = (float)(rand()%500)/500.0;
+
             }
 
             initialized = true;
         } else {
             for(int i = 0; i < instances; i++) {
-                instance_buffer_data[i * 3 + 1] -= 0.1f;
-                if (instance_buffer_data[i * 3 + 1] < 0.0) {
-                    instance_buffer_data[i * 3 + 1] = 50.0;
-                    instance_buffer_data[i * 3 + 0] = (float)(rand()%500)/10.0;
-                    instance_buffer_data[i * 3 + 2] = (float)(rand()%500)/10.0;
+                instance_buffer_data[i * 4 + 1] -= 0.00001 * ((100.0-instance_buffer_data[i * 3 + 1]) * (100.0-instance_buffer_data[i * 3 + 1]));
+                if (instance_buffer_data[i * 4 + 1] < 0.0) {
+                    instance_buffer_data[i * 4 + 1] = 50.0;
+                    instance_buffer_data[i * 4 + 0] = (float)(rand()%500)/10.0;
+                    instance_buffer_data[i * 4 + 2] = (float)(rand()%500)/10.0;
+                    instance_buffer_data[i * 4 + 3] = (float)(rand()%500)/500.0;
                 }
             }
         }
@@ -183,7 +186,7 @@ class Sphere {
         glEnableVertexAttribArray(2);
         glVertexAttribPointer(
             2,                                // attribute. No particular reason for 1, but must match the layout in the shader.
-            3,                                // size
+            4,                                // size
             GL_FLOAT,                         // type
             GL_FALSE,                         // normalized?
             0,                                // stride
@@ -239,7 +242,7 @@ class Sphere {
             AGLErrors("uniform dumps failed in sphere.cpp");
 
             //glDrawArrays(GL_TRIANGLES, 0, triangle_count);
-            glDrawArraysInstanced(GL_TRIANGLES, 0, triangle_count, instances);
+            glDrawArraysInstanced(GL_TRIANGLES, 0, triangle_count, instances-1);
 
         }
 };
