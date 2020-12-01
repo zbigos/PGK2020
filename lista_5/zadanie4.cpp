@@ -265,12 +265,13 @@ int main( void )
 
 		if (gamebind == 2) {
 			printf("gamebind == 3, full aquarium view\n");
-			handle_controls(CameraPosition, up, true);
 			render_player = true;
 
 			float s = 10.0;
-			glm::vec3 scaled_camdir = vec3(CameraDirection[0] * s, CameraDirection[1] * s, CameraDirection[2] * s);
-			ViewMatrix = glm::lookAt(CameraPosition - scaled_camdir, CameraPosition, up);	
+			glm::vec3 observer_position = vec3(-3*wallsize, wallsize, wallsize);
+			glm::vec3 camera_target = vec3(1.0, 0.0, 0.0);
+
+			ViewMatrix = glm::lookAt(observer_position, observer_position + camera_target, up);	
 			MVP = Projection * ViewMatrix * Model;
 		}
 

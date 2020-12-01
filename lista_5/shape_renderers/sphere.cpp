@@ -32,7 +32,7 @@ class Sphere {
         GLuint PositionID;
 
         int triangle_count = 0;
-        int aquarium_size = 500;
+        float aquarium_size = 50.0;
         const int instances = 1000;
         bool initialized = false;
         GLfloat *instance_buffer_data;
@@ -105,9 +105,9 @@ class Sphere {
             GLfloat g_color_buffer_data[datacount * 3];
 
             for(int j = 0; j < points.size(); j++) {
-                g_color_buffer_data[3*j + 0] = (GLfloat)(rand()%1000)/1000.0;
-                g_color_buffer_data[3*j + 1] = (GLfloat)(rand()%1000)/1000.0;
-                g_color_buffer_data[3*j + 2] = (GLfloat)(rand()%1000)/1000.0;
+                g_color_buffer_data[3*j + 0] = (float)(rand()%(int)(10.0*aquarium_size))/10.0;
+                g_color_buffer_data[3*j + 1] = (float)(rand()%(int)(10.0*aquarium_size))/10.0;
+                g_color_buffer_data[3*j + 2] = (float)(rand()%(int)(10.0*aquarium_size))/10.0;
                 
                 GLfloat a, b, c;
                 std::tie(a, b, c) = points[j];
@@ -161,9 +161,9 @@ class Sphere {
             instance_buffer_data = new GLfloat[instances * 4];
             
             for(int i = 0; i < instances; i++) {
-                instance_buffer_data[i * 4 + 0] = (float)(rand()%aquarium_size)/10.0;
-                instance_buffer_data[i * 4 + 1] = (float)(rand()%aquarium_size)/10.0;
-                instance_buffer_data[i * 4 + 2] = (float)(rand()%aquarium_size)/10.0;
+                instance_buffer_data[i * 4 + 0] = (float)(rand()%(int)(10.0*aquarium_size))/10.0;
+                instance_buffer_data[i * 4 + 1] = (float)(rand()%(int)(10.0*aquarium_size))/10.0;
+                instance_buffer_data[i * 4 + 2] = (float)(rand()%(int)(10.0*aquarium_size))/10.0;
                 instance_buffer_data[i * 4 + 3] = (float)(rand()%100)/100.0;
             }
 
@@ -188,11 +188,11 @@ class Sphere {
                        
 
             for(int i = 1; i < instances; i++) {
-                instance_buffer_data[i * 4 + 1] -= 0.00001 * (2*(aquarium_size)-instance_buffer_data[i * 3 + 1]);
+                instance_buffer_data[i * 4 + 1] -= 0.00001 * (2*(10.0*aquarium_size)-instance_buffer_data[i * 3 + 1]);
                 if (instance_buffer_data[i * 4 + 1] < 0.0) {
                     instance_buffer_data[i * 4 + 1] = (float)aquarium_size;
-                    instance_buffer_data[i * 4 + 0] = (float)(rand()%aquarium_size)/10.0;
-                    instance_buffer_data[i * 4 + 2] = (float)(rand()%aquarium_size)/10.0;
+                    instance_buffer_data[i * 4 + 0] = (float)(rand()%(int)(aquarium_size*10.0))/10.0;
+                    instance_buffer_data[i * 4 + 2] = (float)(rand()%(int)(aquarium_size*10.0))/10.0;
                     instance_buffer_data[i * 4 + 3] = (float)(rand()%100)/100.0;
                 }
             }
