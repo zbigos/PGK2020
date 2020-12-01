@@ -13,7 +13,6 @@
 /* compiler take the wheel */
 
 
-
 class Cube {
     private:
         float __cubescale;
@@ -33,69 +32,71 @@ class Cube {
         GLuint MatrixID;
         GLuint PositionID;
 
-        void set_buffers() {
+        void set_buffers(glm::vec3 p, glm::vec3 l) {
+            /*
+            glm::vec3 p = vec3(2.0, 1.0, 1.0);
+            glm::vec3 l = vec3(-1.0, -1.0, -1.0);
+            */
+
+            glm::vec3 lll = vec3(l[0], l[1], l[2]);
+            glm::vec3 ppp = vec3(p[0], p[1], p[2]);
+
+            glm::vec3 lpp = vec3(l[0], p[1], p[2]);
+            glm::vec3 plp = vec3(p[0], l[1], p[2]);
+            glm::vec3 ppl = vec3(p[0], p[1], l[2]);
+
+            glm::vec3 llp = vec3(l[0], l[1], p[2]);
+            glm::vec3 lpl = vec3(l[0], p[1], l[2]);
+            glm::vec3 pll = vec3(p[0], l[1], l[2]);
+
             GLfloat g_vertex_buffer_data[] = { 
-                -1.0f,-1.0f,-1.0f,
-                -1.0f,-1.0f, 1.0f,
-                -1.0f, 1.0f, 1.0f,
-                1.0f, 1.0f,-1.0f,
-                -1.0f,-1.0f,-1.0f,
-                -1.0f, 1.0f,-1.0f,
-                1.0f,-1.0f, 1.0f,
-                -1.0f,-1.0f,-1.0f,
-                1.0f,-1.0f,-1.0f,
-                1.0f, 1.0f,-1.0f,
-                1.0f,-1.0f,-1.0f,
-                -1.0f,-1.0f,-1.0f,
-                -1.0f,-1.0f,-1.0f,
-                -1.0f, 1.0f, 1.0f,
-                -1.0f, 1.0f,-1.0f,
-                1.0f,-1.0f, 1.0f,
-                -1.0f,-1.0f, 1.0f,
-                -1.0f,-1.0f,-1.0f,
-                -1.0f, 1.0f, 1.0f,
-                -1.0f,-1.0f, 1.0f,
-                1.0f,-1.0f, 1.0f,
-                1.0f, 1.0f, 1.0f,
-                1.0f,-1.0f,-1.0f,
-                1.0f, 1.0f,-1.0f,
-                1.0f,-1.0f,-1.0f,
-                1.0f, 1.0f, 1.0f,
-                1.0f,-1.0f, 1.0f,
-                1.0f, 1.0f, 1.0f,
-                1.0f, 1.0f,-1.0f,
-                -1.0f, 1.0f,-1.0f,
-                1.0f, 1.0f, 1.0f,
-                -1.0f, 1.0f,-1.0f,
-                -1.0f, 1.0f, 1.0f,
-                1.0f, 1.0f, 1.0f,
-                -1.0f, 1.0f, 1.0f,
-                1.0f,-1.0f, 1.0f
+                lll[0], lll[1], lll[2],
+                llp[0], llp[1], llp[2],
+                lpp[0], lpp[1], lpp[2], 
+                ppl[0], ppl[1], ppl[2],
+                lll[0], lll[1], lll[2],
+                lpl[0], lpl[1], lpl[2],
+                plp[0], plp[1], plp[2],
+                lll[0], lll[1], lll[2],
+                pll[0], pll[1], pll[2],
+                ppl[0], ppl[1], ppl[2],
+                pll[0], pll[1], pll[2],
+                lll[0], lll[1], lll[2],
+                lll[0], lll[1], lll[2],
+                lpp[0], lpp[1], lpp[2], 
+                lpl[0], lpl[1], lpl[2],
+                plp[0], plp[1], plp[2],
+                llp[0], llp[1], llp[2],
+                lll[0], lll[1], lll[2],
+                lpp[0], lpp[1], lpp[2], 
+                llp[0], llp[1], llp[2],
+                plp[0], plp[1], plp[2],
+                ppp[0], ppp[1], ppp[2],
+                pll[0], pll[1], pll[2],
+                ppl[0], ppl[1], ppl[2],
+                pll[0], pll[1], pll[2],
+                ppp[0], ppp[1], ppp[2],
+                plp[0], plp[1], plp[2],
+                ppp[0], ppp[1], ppp[2],
+                ppl[0], ppl[1], ppl[2],
+                lpl[0], lpl[1], lpl[2],
+                ppp[0], ppp[1], ppp[2],
+                lpl[0], lpl[1], lpl[2],
+                lpp[0], lpp[1], lpp[2], 
+                ppp[0], ppp[1], ppp[2],
+                lpp[0], lpp[1], lpp[2], 
+                plp[0], plp[1], plp[2],
             };
 
             for(int e = 0; e < 12*3*3; e++) {
-                g_vertex_buffer_data[e] *= __cubescale/2.0f;
+                g_vertex_buffer_data[e] *= 2.0f;
             }
-
-            GLfloat instance_buffer_data[__cubesize*__cubesize*__cubesize][3];
-            for (int i = 0; i < __cubesize; i++)
-                for (int j = 0; j < __cubesize; j++)
-                    for (int k = 0; k < __cubesize; k++) {
-                        instance_buffer_data[k + j*__cubesize + i*__cubesize*__cubesize][0] =  i;
-                        instance_buffer_data[k + j*__cubesize + i*__cubesize*__cubesize][1] =  j;
-                        instance_buffer_data[k + j*__cubesize + i*__cubesize*__cubesize][2] =  k;
-                    }
-        
         
         AGLErrors("arrayop failed in cube.cpp");
 
         // 1rst attribute buffer : vertices
         glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
         glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
-
-        glBindBuffer(GL_ARRAY_BUFFER, instancebuffer);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(instance_buffer_data), instance_buffer_data, GL_STATIC_DRAW);
-
 
         glEnableVertexAttribArray(0);
         glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
@@ -107,110 +108,41 @@ class Cube {
             0,                  // stride
             (void*)0            // array buffer offset
         );
-
-
-        // 3rd attribute buffer : instances
-        glEnableVertexAttribArray(1);
-        glBindBuffer(GL_ARRAY_BUFFER, instancebuffer);
-        glVertexAttribPointer(
-            1,                                // attribute. No particular reason for 1, but must match the layout in the shader.
-            3,                                // size
-            GL_FLOAT,                         // type
-            GL_FALSE,                         // normalized?
-            0,                                // stride
-            (void*)0                          // array buffer offset
-        );
-
-        glVertexAttribDivisor(1, 1); // each cube is 12*3 verts long, so let this number of dudes pass. 
     }
 
     void load_shaders() {
-        programID = LoadShaders( "shaders/TransformVertexShader.vertexshader", "shaders/ColorFragmentShader.fragmentshader" );
-        
+        programID = LoadShaders( "shaders/borderek.vertexshader", "shaders/borderek.fragmentshader" );
         MatrixID = glGetUniformLocation(programID, "MVP");
-        PositionID = glGetUniformLocation(programID, "position");
-        distance_scaleID = glGetUniformLocation(programID, "distance_scale");
-        cubesize_ID = glGetUniformLocation(programID, "cube_size");
-
-        printf("program %d, %d %d %d\n", programID, MatrixID, PositionID, distance_scaleID);
     }
 
     void bindBuffers() {
         glBindVertexArray(VertexArrayID);
         glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-        glBindBuffer(GL_ARRAY_BUFFER, instancebuffer);
     }
 
     public:
-        void recommit_instance_buffer(int labstage) {
-            printf("recommit invoked\n");
-            GLfloat instance_buffer_data[__cubesize*__cubesize*__cubesize][3];
-            for (int i = 0; i < __cubesize; i++)
-                for (int j = 0; j < __cubesize; j++)
-                    for (int k = 0; k < __cubesize; k++) {
-                        if (labirynth[k + j*__cubesize + i*__cubesize*__cubesize] < labstage) {
-                            instance_buffer_data[k + j*__cubesize + i*__cubesize*__cubesize][0] =  i;
-                            instance_buffer_data[k + j*__cubesize + i*__cubesize*__cubesize][1] =  j;
-                            instance_buffer_data[k + j*__cubesize + i*__cubesize*__cubesize][2] =  k;
-                        } else {
-                            instance_buffer_data[k + j*__cubesize + i*__cubesize*__cubesize][0] = 10000.0;
-                            instance_buffer_data[k + j*__cubesize + i*__cubesize*__cubesize][1] = 10000.0;
-                            instance_buffer_data[k + j*__cubesize + i*__cubesize*__cubesize][2] = 10000.0;
-                        }
-                    }
-
-
-            glBindBuffer(GL_ARRAY_BUFFER, instancebuffer);
-            glBufferData(GL_ARRAY_BUFFER, sizeof(instance_buffer_data), instance_buffer_data, GL_STATIC_DRAW);
-
-            glBindBuffer(GL_ARRAY_BUFFER, instancebuffer);
-            glEnableVertexAttribArray(1);
-            glVertexAttribPointer(
-                1,                                // attribute. No particular reason for 1, but must match the layout in the shader.
-                3,                                // size
-                GL_FLOAT,                         // type
-                GL_FALSE,                         // normalized?
-                0,                                // stride
-                (void*)0                          // array buffer offset
-            );
-
-            glVertexAttribDivisor(1, 1); // each cube is 12*3 verts long, so let this number of dudes pass. 
-        }
-
-        void init(int cubesize, float cubescale) {
-            __cubesize = cubesize;
-            __cubescale = cubescale;
-
+        void init(glm::vec3 p, glm::vec3 l) {
             glGenVertexArrays(1, &VertexArrayID);
             glBindVertexArray(VertexArrayID);
-            printf("VAOid = %d\n", VertexArrayID);
 
             glGenBuffers(1, &vertexbuffer);
-            glGenBuffers(1, &instancebuffer);
 
             AGLErrors("glGenBuffers failed in cube.cpp");
 
             load_shaders();
             AGLErrors("load_shaders failed in cube.cpp");
 
-            set_buffers();
+            set_buffers(p, l);
             AGLErrors("set_buffers failed in cube.cpp");
-
-            recommit_instance_buffer(1);
-            AGLErrors("recommit instance buffer failed in cube.cpp");
-
         }
 
         //glm::mat4 Projection, glm::mat4 View, glm::mat4 Model
-        void draw(float x, float y, float z, glm::mat4 MVP) {
+        void draw(glm::mat4 MVP) {
 		    glUseProgram(programID);
             bindBuffers();
             
     		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
-            glUniform3f(PositionID, x, y, z);
-            glUniform1f(distance_scaleID, __cubescale);
-            glUniform1f(cubesize_ID, __cubesize - 2.0f);
 
-            glDrawArraysInstanced(GL_TRIANGLES, 0, 12*3, __cubesize * __cubesize * __cubesize);
+            glDrawArrays(GL_TRIANGLES, 0, 12*3);
         }
 };

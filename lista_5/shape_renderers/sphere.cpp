@@ -32,7 +32,8 @@ class Sphere {
         GLuint PositionID;
 
         int triangle_count = 0;
-        const int instances = 100;
+        int aquarium_size = 500;
+        const int instances = 1000;
         bool initialized = false;
         GLfloat *instance_buffer_data;
 
@@ -47,7 +48,7 @@ class Sphere {
 
             /* for obvious reason we don't use resolution < 2*/
             for(int i = 0; i < resolution; i++) {
-                float hangle = (float)i * (180.0 / (float)resolution); /* god I hope that this is obvious to me when I have to debug this garbage */
+                float hangle = (float)i * (180.0 / (float)(resolution - 1)); /* god I hope that this is obvious to me when I have to debug this garbage */
                 GLfloat z = cos(PI * hangle/180.0);
                 GLfloat scale = sin(PI * hangle/180.0);
 
@@ -153,28 +154,46 @@ class Sphere {
         
     }
     
-    void commit_instance_buffer() {
+    int counter = 0;
+    void commit_instance_buffer(float px, float py, float pz, bool render_player) {
 
         if (!initialized) {
             instance_buffer_data = new GLfloat[instances * 4];
             
             for(int i = 0; i < instances; i++) {
-                instance_buffer_data[i * 4 + 0] = (float)(rand()%500)/10.0;
-                instance_buffer_data[i * 4 + 1] = (float)(rand()%500)/10.0;
-                instance_buffer_data[i * 4 + 2] = (float)(rand()%500)/10.0;
-                instance_buffer_data[i * 4 + 3] = (float)(rand()%500)/500.0;
-
+                instance_buffer_data[i * 4 + 0] = (float)(rand()%aquarium_size)/10.0;
+                instance_buffer_data[i * 4 + 1] = (float)(rand()%aquarium_size)/10.0;
+                instance_buffer_data[i * 4 + 2] = (float)(rand()%aquarium_size)/10.0;
+                instance_buffer_data[i * 4 + 3] = (float)(rand()%100)/100.0;
             }
 
             initialized = true;
         } else {
-            for(int i = 0; i < instances; i++) {
-                instance_buffer_data[i * 4 + 1] -= 0.00001 * ((100.0-instance_buffer_data[i * 3 + 1]) * (100.0-instance_buffer_data[i * 3 + 1]));
+            printf("translation %lf %lf %lf\n", px, py, pz);
+            if(counter > -1) {
+                counter += 1;
+                if (render_player) {
+                    instance_buffer_data[0] = px * 1.0;
+                    instance_buffer_data[1] = py * 1.0;
+                    instance_buffer_data[2] = pz * 1.0;
+                } else {
+                    instance_buffer_data[0] = 10000.0f;
+                    instance_buffer_data[1] = 10000.0f;
+                    instance_buffer_data[2] = 10000.0f;
+                }
+            }
+            instance_buffer_data[3] += 0.01;
+            if(instance_buffer_data[3] > 1.0)
+                instance_buffer_data[3] = 0.0;
+                       
+
+            for(int i = 1; i < instances; i++) {
+                instance_buffer_data[i * 4 + 1] -= 0.00001 * (2*(aquarium_size)-instance_buffer_data[i * 3 + 1]);
                 if (instance_buffer_data[i * 4 + 1] < 0.0) {
-                    instance_buffer_data[i * 4 + 1] = 50.0;
-                    instance_buffer_data[i * 4 + 0] = (float)(rand()%500)/10.0;
-                    instance_buffer_data[i * 4 + 2] = (float)(rand()%500)/10.0;
-                    instance_buffer_data[i * 4 + 3] = (float)(rand()%500)/500.0;
+                    instance_buffer_data[i * 4 + 1] = (float)aquarium_size;
+                    instance_buffer_data[i * 4 + 0] = (float)(rand()%aquarium_size)/10.0;
+                    instance_buffer_data[i * 4 + 2] = (float)(rand()%aquarium_size)/10.0;
+                    instance_buffer_data[i * 4 + 3] = (float)(rand()%100)/100.0;
                 }
             }
         }
@@ -227,18 +246,18 @@ class Sphere {
 
             load_shaders();
             set_buffers();
-            commit_instance_buffer();
+            commit_instance_buffer(0.0, 0.0, 0.0, true);
         }
 
-        void draw(float x, float y, float z, glm::mat4 MVP) {
+        void draw(float x, float y, float z, bool render_player, glm::mat4 MVP) {
 
 		    glUseProgram(programID);
             bindBuffers();
 
-            commit_instance_buffer();
+            commit_instance_buffer(x, y, z, render_player);
 
     		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
-            glUniform3f(PositionID, x, y, z);
+            glUniform3f(PositionID, 0.0, 0.0, 0.0);
             AGLErrors("uniform dumps failed in sphere.cpp");
 
             //glDrawArrays(GL_TRIANGLES, 0, triangle_count);

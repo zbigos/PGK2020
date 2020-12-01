@@ -55,7 +55,6 @@ float verticalAngle = 2.53f;
 float blkscale = 15.0;
 int objcorner = 0;
 
-Cube Ech;
 Sphere Endpoint;
 
 glm::vec3 CameraDirection;
@@ -142,6 +141,11 @@ void CallbackResize(GLFWwindow* window, int cx, int cy) {
 
 
 float initial_q_dist = -200.0f;
+
+Cube Wall1, Wall2, Wall3;
+Cube Wall1a, Wall2a, Wall3a, Wall4a, Wall5a, Wall6a;
+Cube Wall1b, Wall2b, Wall3b;
+
 int main( void )
 {
 	int labsize = 8;
@@ -180,8 +184,37 @@ int main( void )
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	AGLErrors("why the fuck would you fail now?");
+	float thickness = 0.1f;
+	float wallsize = 25.0f;
+	glm::vec3 origin = vec3(0.0f, 0.0f, 0.0f);
+
+	glm::vec3 To = vec3(thickness, thickness, thickness);
+	glm::vec3 Too = vec3(thickness*2, thickness*2, thickness*2);
+
+	glm::vec3 T1 = vec3(wallsize, thickness, thickness);
+	glm::vec3 T2 = vec3(thickness, wallsize, thickness);
+	glm::vec3 T3 = vec3(thickness, thickness, wallsize);
+	
+	Wall1.init(origin, T1);
+	Wall2.init(origin, T2);
+	Wall3.init(origin, T3);
+
+	Wall1a.init(T1 - To, T1 + T3 - To);
+	Wall2a.init(T1 - To, T1 + T2 - To);
+
+	Wall3a.init(T2 - To, T2 + T3 - To);
+	Wall4a.init(T2 - To, T2 + T1 - To);
+
+	Wall5a.init(T3 - To, T3 + T1 - To);
+	Wall6a.init(T3 - To, T3 + T2 - To);
+
+	Wall1b.init(T1 + T2 - Too, T1 + T2 + T3 - Too);
+	Wall2b.init(T1 + T3 - Too, T1 + T2 + T3 - Too);
+	Wall3b.init(T2 + T3 - Too, T1 + T2 + T3 - Too);
+
 
 	Endpoint.init(10, blkscale);
+	
 	AGLErrors("yeeted while initializing endpoint");
 
 	AGLErrors("yeeted while initializing board");
@@ -191,36 +224,78 @@ int main( void )
 
 	float last_commit = glfwGetTime();
 	
-	int gamebind = 2;
+	int gamebind = 1;
 
 	int gamestate = IN_MENU;
-	glm::vec3 CameraPosition = glm::vec3(blkscale, blkscale, blkscale);
-	glm::vec3 PerhapsCameraPosition = glm::vec3(blkscale, blkscale, blkscale);
+	glm::vec3 CameraPosition = glm::vec3(0.0, 0.0, 0.0);
 	glm::vec3 up;
-	
-	int animation_cube_buildstate = 20;
 
+	bool render_player = false;
+
+	glm::mat4 MVP;
+	glm::mat4 Projection = glm::infinitePerspective(glm::radians(45.0f), 4.0f / 4.0f, 0.1f);
+	glm::mat4 Model      = glm::mat4(1.0);
+	
 	do{
 		glfwPollEvents();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		if (gamebind == 2)
-			handle_controls(CameraPosition, up, true);
-
+		
+			
 		/* game logic, handle moving target shape around, advance level stage.*/
+		if (gamebind == 0) {
+			printf("gamebind == 1, first person view");
+			handle_controls(CameraPosition, up, true);
+			render_player = false;
+
+			glm::vec3 eee = CameraPosition + CameraDirection;
+			ViewMatrix = glm::lookAt(CameraPosition, eee, up);	
+			MVP = Projection * ViewMatrix * Model;
+		}
+
+		if (gamebind == 1) {
+			printf("gamebind == 2, third person view\n");
+			handle_controls(CameraPosition, up, true);
+			render_player = true;
+
+			float s = 10.0;
+			glm::vec3 scaled_camdir = vec3(CameraDirection[0] * s, CameraDirection[1] * s, CameraDirection[2] * s);
+			ViewMatrix = glm::lookAt(CameraPosition - scaled_camdir, CameraPosition, up);	
+			MVP = Projection * ViewMatrix * Model;
+		}
+
+		if (gamebind == 2) {
+			printf("gamebind == 3, full aquarium view\n");
+			handle_controls(CameraPosition, up, true);
+			render_player = true;
+
+			float s = 10.0;
+			glm::vec3 scaled_camdir = vec3(CameraDirection[0] * s, CameraDirection[1] * s, CameraDirection[2] * s);
+			ViewMatrix = glm::lookAt(CameraPosition - scaled_camdir, CameraPosition, up);	
+			MVP = Projection * ViewMatrix * Model;
+		}
+
 
 		// recalculate ViewMatrix, and MVP.
-		glm::vec3 eee = CameraPosition + CameraDirection;
-		ViewMatrix = glm::lookAt(CameraPosition, eee, up);	
-
-		glm::mat4 Projection = glm::infinitePerspective(glm::radians(45.0f), 4.0f / 4.0f, 0.1f);
-		glm::mat4 Model      = glm::mat4(1.0);
-		glm::mat4 MVP = Projection * ViewMatrix * Model;
-
 
 		AGLErrors("main-loopbegin");
+		//
+		Endpoint.draw(CameraPosition[0], CameraPosition[1], CameraPosition[2], render_player, MVP);
 
-		Endpoint.draw(0, 0, 0, MVP);
+		Wall1.draw(MVP);
+		Wall2.draw(MVP);
+		Wall3.draw(MVP);
+
+		Wall1a.draw(MVP);
+		Wall2a.draw(MVP);
+		Wall3a.draw(MVP);
+		Wall4a.draw(MVP);
+		Wall5a.draw(MVP);
+		Wall6a.draw(MVP);
+
+		Wall1b.draw(MVP);
+		Wall2b.draw(MVP);
+		Wall3b.draw(MVP);
+
 		AGLErrors("yeeted while processing endpoint draw");
 
 		AGLErrors("main-afterdraw");
@@ -231,7 +306,7 @@ int main( void )
 		if (glfwGetKey( window, GLFW_KEY_ESCAPE ) == GLFW_PRESS){
 			if (glfwGetTime() > last_commit + 1.0f) {
 				last_commit = glfwGetTime();
-				gamebind -= 1;
+				gamebind = -1;
 			}
 		}
 
@@ -239,11 +314,11 @@ int main( void )
 		if (glfwGetKey( window, GLFW_KEY_TAB ) == GLFW_PRESS){
 			if (glfwGetTime() > last_commit + 1.0f) {
 				last_commit = glfwGetTime();
-				gamebind = 2;
+				gamebind = (gamebind + 1) % 3;
 			}
 		}
 		
-	} while( gamebind > 0 &&
+	} while( gamebind >= 0 &&
 		   glfwWindowShouldClose(window) == 0 );
 
 	// Close OpenGL window and terminate GLFW
