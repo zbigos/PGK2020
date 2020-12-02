@@ -142,9 +142,12 @@ void CallbackResize(GLFWwindow* window, int cx, int cy) {
 
 float initial_q_dist = -200.0f;
 
-Cube Wall1, Wall2, Wall3;
-Cube Wall1a, Wall2a, Wall3a, Wall4a, Wall5a, Wall6a;
-Cube Wall1b, Wall2b, Wall3b;
+Cube Frame1, Frame2, Frame3;
+Cube Frame1a, Frame2a, Frame3a, Frame4a, Frame5a, Frame6a;
+Cube Frame1b, Frame2b, Frame3b;
+
+Cube Floor;
+
 
 int main( void )
 {
@@ -195,23 +198,24 @@ int main( void )
 	glm::vec3 T2 = vec3(thickness, wallsize, thickness);
 	glm::vec3 T3 = vec3(thickness, thickness, wallsize);
 	
-	Wall1.init(origin, T1);
-	Wall2.init(origin, T2);
-	Wall3.init(origin, T3);
+	Frame1.init(origin, T1);
+	Frame2.init(origin, T2);
+	Frame3.init(origin, T3);
 
-	Wall1a.init(T1 - To, T1 + T3 - To);
-	Wall2a.init(T1 - To, T1 + T2 - To);
+	Frame1a.init(T1 - To, T1 + T3 - To);
+	Frame2a.init(T1 - To, T1 + T2 - To);
 
-	Wall3a.init(T2 - To, T2 + T3 - To);
-	Wall4a.init(T2 - To, T2 + T1 - To);
+	Frame3a.init(T2 - To, T2 + T3 - To);
+	Frame4a.init(T2 - To, T2 + T1 - To);
 
-	Wall5a.init(T3 - To, T3 + T1 - To);
-	Wall6a.init(T3 - To, T3 + T2 - To);
+	Frame5a.init(T3 - To, T3 + T1 - To);
+	Frame6a.init(T3 - To, T3 + T2 - To);
 
-	Wall1b.init(T1 + T2 - Too, T1 + T2 + T3 - Too);
-	Wall2b.init(T1 + T3 - Too, T1 + T2 + T3 - Too);
-	Wall3b.init(T2 + T3 - Too, T1 + T2 + T3 - Too);
+	Frame1b.init(T1 + T2 - Too, T1 + T2 + T3 - Too);
+	Frame2b.init(T1 + T3 - Too, T1 + T2 + T3 - Too);
+	Frame3b.init(T2 + T3 - Too, T1 + T2 + T3 - Too);
 
+	Floor.init(T2, T1 + T2 + T3 - Too - To);
 
 	Endpoint.init(10, blkscale);
 	
@@ -280,22 +284,24 @@ int main( void )
 
 		AGLErrors("main-loopbegin");
 		//
-		Endpoint.draw(CameraPosition[0], CameraPosition[1], CameraPosition[2], render_player, MVP);
+		Endpoint.draw(CameraPosition[0], CameraPosition[1], CameraPosition[2], render_player, MVP, ViewMatrix, Model, CameraPosition);
 
-		Wall1.draw(MVP);
-		Wall2.draw(MVP);
-		Wall3.draw(MVP);
+		Frame1.draw(MVP, vec3(0.0, 0.0, 0.0));
+		Frame2.draw(MVP, vec3(0.0, 0.0, 0.0));
+		Frame3.draw(MVP, vec3(0.0, 0.0, 0.0));
 
-		Wall1a.draw(MVP);
-		Wall2a.draw(MVP);
-		Wall3a.draw(MVP);
-		Wall4a.draw(MVP);
-		Wall5a.draw(MVP);
-		Wall6a.draw(MVP);
+		Frame1a.draw(MVP, vec3(0.0, 0.0, 0.0));
+		Frame2a.draw(MVP, vec3(0.0, 0.0, 0.0));
+		Frame3a.draw(MVP, vec3(0.0, 0.0, 0.0));
+		Frame4a.draw(MVP, vec3(0.0, 0.0, 0.0));
+		Frame5a.draw(MVP, vec3(0.0, 0.0, 0.0));
+		Frame6a.draw(MVP, vec3(0.0, 0.0, 0.0));
 
-		Wall1b.draw(MVP);
-		Wall2b.draw(MVP);
-		Wall3b.draw(MVP);
+		Frame1b.draw(MVP, vec3(0.0, 0.0, 0.0));
+		Frame2b.draw(MVP, vec3(0.0, 0.0, 0.0));
+		Frame3b.draw(MVP, vec3(0.0, 0.0, 0.0));
+
+		Floor.draw(MVP, vec3(0.298, 0.274, 0.196));
 
 		AGLErrors("yeeted while processing endpoint draw");
 

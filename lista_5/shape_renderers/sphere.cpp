@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+
 #include <tuple>
 #include <math.h>
 
@@ -18,7 +19,7 @@ class Sphere {
 
         GLuint vertexbuffer;
         GLuint colorbuffer;
-
+    	GLuint normalbuffer;
         GLuint instancebuffer;
 
         GLuint VertexArrayID;
@@ -31,18 +32,36 @@ class Sphere {
         GLuint MatrixID;
         GLuint PositionID;
 
+        GLuint MID;
+        GLuint VID;
+        GLuint LPUID;
+        GLuint CPID;
+
         int triangle_count = 0;
         float aquarium_size = 50.0;
         const int instances = 1000;
         bool initialized = false;
         GLfloat *instance_buffer_data;
 
+        glm::vec3 triangleNormal(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3) {
+            glm::vec3 U = p2 - p1;
+            glm::vec3 V = p3 - p1;
+
+            glm::vec3 normal;
+            normal.x = (U.y*V.z) - (U.z*V.y);
+            normal.y = (U.z*V.x) - (U.x*V.z);
+            normal.z = (U.x*V.y) - (U.y*V.x);
+
+            return glm::normalize(normal);
+        }
+
         void set_buffers() {
             std::vector<std::vector<std::tuple<GLfloat, GLfloat, GLfloat>>> Point_set;
             std::vector<std::tuple<GLfloat, GLfloat, GLfloat>> points;
+            std::vector<glm::vec3> normals;
 
             /* generate the points on a sphere */
-            int resolution = 20;
+            int resolution = 40;
             Point_set.resize(resolution);
             
 
@@ -79,7 +98,18 @@ class Sphere {
                     p2 = Point_set[i][j + 1]; // D
                     p3 = Point_set[i+1][j]; // A
                     
-                    printf("");
+                    GLfloat a, b, c;
+                    std::tie(a, b, c) = p1;
+                    glm::vec3 gp1 = glm::vec3(a, b, c);
+                    std::tie(a, b, c) = p2;
+                    glm::vec3 gp2 = glm::vec3(a, b, c);
+                    std::tie(a, b, c) = p3;
+                    glm::vec3 gp3 = glm::vec3(a, b, c);
+                    
+                    glm::vec3 norm1 = triangleNormal(gp1, gp2, gp3);
+                    normals.push_back(norm1);
+                    normals.push_back(norm1);
+                    normals.push_back(norm1);
 
                     points.push_back(p1);
                     points.push_back(p2);
@@ -90,10 +120,23 @@ class Sphere {
                     p1 = Point_set[i][j+1]; // D
                     p2 = Point_set[i+1][j]; // A
                     p3 = Point_set[i+1][j+1]; // B
-                    points.push_back(p1);
-                    points.push_back(p2);
+
                     points.push_back(p3);
+                    points.push_back(p2);                    
+                    points.push_back(p1);
+
+                    std::tie(a, b, c) = p1;
+                    gp1 = glm::vec3(a, b, c);
+                    std::tie(a, b, c) = p2;
+                    gp2 = glm::vec3(a, b, c);
+                    std::tie(a, b, c) = p3;
+                    gp3 = glm::vec3(a, b, c);
                     
+                    norm1 = triangleNormal(gp3, gp2, gp1);
+                    normals.push_back(norm1);
+                    normals.push_back(norm1);
+                    normals.push_back(norm1);
+
                 }
             }
 
@@ -124,6 +167,9 @@ class Sphere {
         glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
         glBufferData(GL_ARRAY_BUFFER, sizeof(g_color_buffer_data), g_color_buffer_data, GL_STATIC_DRAW);
 
+        glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+        glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), &normals[0], GL_STATIC_DRAW);
+
         AGLErrors("stuff failed in sphere.cpp");
 
         glEnableVertexAttribArray(0);
@@ -151,7 +197,18 @@ class Sphere {
         // 1rst attribute buffer : vertices
 
     	AGLErrors("tu sie nie siedzi, tu sie inicjalizuje bufory");
-        
+
+		glEnableVertexAttribArray(3);
+		glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+		glVertexAttribPointer(
+			3,                                // attribute
+			3,                                // size
+			GL_FLOAT,                         // type
+			GL_FALSE,                         // normalized?
+			0,                                // stride
+			(void*)0                          // array buffer offset
+		);
+
     }
     
     int counter = 0;
@@ -219,6 +276,11 @@ class Sphere {
         programID = LoadShaders( "shaders/TransformVertexShader.vertexshader", "shaders/ColorFragmentShader.fragmentshader" );
         
         MatrixID = glGetUniformLocation(programID, "MVP");
+        MID = glGetUniformLocation(programID, "M");
+        VID = glGetUniformLocation(programID, "V");
+        LPUID = glGetUniformLocation(programID, "LightPosition_worldspace");
+        CPID = glGetUniformLocation(programID, "CameraPosition_worldspace");
+
         PositionID = glGetUniformLocation(programID, "position");
 
         printf("program %d, %d %d\n", programID, MatrixID, PositionID);
@@ -229,6 +291,7 @@ class Sphere {
         glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
         glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
         glBindBuffer(GL_ARRAY_BUFFER, instancebuffer);
+    	glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
     }
 
     public:
@@ -243,25 +306,30 @@ class Sphere {
             glGenBuffers(1, &vertexbuffer);
             glGenBuffers(1, &colorbuffer);
             glGenBuffers(1, &instancebuffer);
+        	glGenBuffers(1, &normalbuffer);
 
             load_shaders();
             set_buffers();
             commit_instance_buffer(0.0, 0.0, 0.0, true);
         }
 
-        void draw(float x, float y, float z, bool render_player, glm::mat4 MVP) {
+        void draw(float x, float y, float z, bool render_player, glm::mat4 MVP, glm::mat4 V, glm::mat4 M, glm::vec3 CP) {
 
 		    glUseProgram(programID);
             bindBuffers();
 
             commit_instance_buffer(x, y, z, render_player);
-
     		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
-            glUniform3f(PositionID, 0.0, 0.0, 0.0);
+
+    		glUniformMatrix4fv(MID, 1, GL_FALSE, &M[0][0]);
+    		glUniformMatrix4fv(VID, 1, GL_FALSE, &V[0][0]);
+    		glUniform3f(CPID, CP[0], CP[1], CP[2]);
+
+            glUniform3f(LPUID, 25.0, 25.0, 25.0);
+    
             AGLErrors("uniform dumps failed in sphere.cpp");
 
             //glDrawArrays(GL_TRIANGLES, 0, triangle_count);
-            glDrawArraysInstanced(GL_TRIANGLES, 0, triangle_count, instances-1);
-
+            glDrawArraysInstanced(GL_TRIANGLES, 0, triangle_count, instances);
         }
 };

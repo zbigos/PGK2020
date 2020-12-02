@@ -26,7 +26,7 @@ class Cube {
         GLuint ColorArrayID;
         GLuint InstanceArrayID;
         GLuint cubesize_ID;
-        GLuint distance_scaleID;
+        GLuint ColorId;
 
         GLuint programID;
         GLuint MatrixID;
@@ -113,6 +113,7 @@ class Cube {
     void load_shaders() {
         programID = LoadShaders( "shaders/borderek.vertexshader", "shaders/borderek.fragmentshader" );
         MatrixID = glGetUniformLocation(programID, "MVP");
+        ColorId =  glGetUniformLocation(programID, "color");
     }
 
     void bindBuffers() {
@@ -137,11 +138,12 @@ class Cube {
         }
 
         //glm::mat4 Projection, glm::mat4 View, glm::mat4 Model
-        void draw(glm::mat4 MVP) {
+        void draw(glm::mat4 MVP, glm::vec3 color) {
 		    glUseProgram(programID);
             bindBuffers();
             
     		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
+            glUniform3f(ColorId, color[0], color[1], color[2]);
 
             glDrawArrays(GL_TRIANGLES, 0, 12*3);
         }

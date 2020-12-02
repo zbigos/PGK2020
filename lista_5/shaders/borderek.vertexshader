@@ -7,10 +7,12 @@ layout(location = 0) in vec3 vertexPosition_modelspace;
 out vec4 fragmentColor;
 // Values that stay constant for the whole mesh.
 uniform mat4 MVP;
+uniform vec3 color;
+
 
 
 void main(){	
 	gl_Position =  MVP * vec4(vertexPosition_modelspace, 1);
-	fragmentColor = vec4(0.0, 0.0, 0.0, 1.0);
+	fragmentColor = vec4(color, 1.0);
 }
 
