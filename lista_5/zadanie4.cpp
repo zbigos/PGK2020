@@ -176,7 +176,7 @@ int main( void )
 	// Ensure we can capture the escape key being pressed below
 	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
 
-	glClearColor(0.9f, 0.9f, 0.9f, 0.0f);
+	glClearColor(0.4f, 0.4f, 0.4f, 0.0f);
 
 	glEnable (GL_DEBUG_OUTPUT);
 	glDebugMessageCallback(MessageCallback, 0);
@@ -187,8 +187,8 @@ int main( void )
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	AGLErrors("why the fuck would you fail now?");
-	float thickness = 0.1f;
-	float wallsize = 25.0f;
+	float thickness = 0.5f;
+	float wallsize = 100.0f;
 	glm::vec3 origin = vec3(0.0f, 0.0f, 0.0f);
 
 	glm::vec3 To = vec3(thickness, thickness, thickness);

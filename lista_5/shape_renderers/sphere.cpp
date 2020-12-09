@@ -38,8 +38,12 @@ class Sphere {
         GLuint CPID;
 
         int triangle_count = 0;
-        float aquarium_size = 50.0;
-        const int instances = 1000;
+        float aquarium_size = 200.0;
+        
+        float orbit_distance = 300.0;
+        float orbit_agle = 0.0;
+
+        const int instances = 100;
         bool initialized = false;
         GLfloat *instance_buffer_data;
 
@@ -226,26 +230,37 @@ class Sphere {
 
             initialized = true;
         } else {
-            printf("translation %lf %lf %lf\n", px, py, pz);
-            if(counter > -1) {
-                counter += 1;
-                if (render_player) {
-                    instance_buffer_data[0] = px * 1.0;
-                    instance_buffer_data[1] = py * 1.0;
-                    instance_buffer_data[2] = pz * 1.0;
-                } else {
-                    instance_buffer_data[0] = 10000.0f;
-                    instance_buffer_data[1] = 10000.0f;
-                    instance_buffer_data[2] = 10000.0f;
-                }
+            /* przelicz gracza */
+            if (render_player) {
+                instance_buffer_data[0] = px * 1.0;
+                instance_buffer_data[1] = py * 1.0;
+                instance_buffer_data[2] = pz * 1.0;
+            } else {
+                instance_buffer_data[0] = 10000.0f;
+                instance_buffer_data[1] = 10000.0f;
+                instance_buffer_data[2] = 10000.0f;
             }
             instance_buffer_data[3] += 0.01;
             if(instance_buffer_data[3] > 1.0)
                 instance_buffer_data[3] = 0.0;
-                       
+            
+            /* przelicz słońce */
+            orbit_agle += 1.0f;
+            if (orbit_agle > 360.0f)
+                orbit_agle = 0.0f;
+            
+            float aaax = cos(PI * orbit_agle/180.0) * orbit_distance;
+            float aaay = sin(PI * orbit_agle/180.0) * orbit_distance;
+            float aaaz = aquarium_size/2.0;
 
-            for(int i = 1; i < instances; i++) {
-                instance_buffer_data[i * 4 + 1] -= 0.00001 * (2*(10.0*aquarium_size)-instance_buffer_data[i * 3 + 1]);
+            instance_buffer_data[4] = aaax + aaaz;
+            instance_buffer_data[5] = aaay + aaaz;
+            instance_buffer_data[6] = aaaz;
+            instance_buffer_data[7] = 60.0/360.0;
+
+
+            for(int i = 2; i < instances; i++) {
+                instance_buffer_data[i * 4 + 1] -= 0.0001 * (2*(10.0*aquarium_size)-instance_buffer_data[i * 3 + 1]);
                 if (instance_buffer_data[i * 4 + 1] < 0.0) {
                     instance_buffer_data[i * 4 + 1] = (float)aquarium_size;
                     instance_buffer_data[i * 4 + 0] = (float)(rand()%(int)(aquarium_size*10.0))/10.0;
@@ -325,7 +340,7 @@ class Sphere {
     		glUniformMatrix4fv(VID, 1, GL_FALSE, &V[0][0]);
     		glUniform3f(CPID, CP[0], CP[1], CP[2]);
 
-            glUniform3f(LPUID, 25.0, 25.0, 25.0);
+            glUniform3f(LPUID, instance_buffer_data[4], instance_buffer_data[5], instance_buffer_data[6]);
     
             AGLErrors("uniform dumps failed in sphere.cpp");
 

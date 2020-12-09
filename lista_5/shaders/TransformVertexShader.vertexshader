@@ -6,6 +6,7 @@ layout(location = 1) in vec3 object_color;
 layout(location = 2) in vec4 instance_data;
 layout(location = 3) in vec3 vertexNormal_modelspace;
 
+in int gl_InstanceID;
 
 // Output data ; will be interpolated for each fragment.
 out vec3 fragmentColor;
@@ -15,6 +16,7 @@ out vec3 Position_worldspace;
 out vec3 Normal_cameraspace;
 out vec3 EyeDirection_cameraspace;
 out vec3 LightDirection_cameraspace;
+flat out int iid;
 
 // Values that stay constant for the whole mesh.
 uniform float distance_scale;
@@ -36,10 +38,21 @@ vec3 hsv2rgb(vec3 c)
 }
 
 void main(){
+	iid = gl_InstanceID;
+	
 	vec3 instance_translation = vec3(instance_data[0], instance_data[1], instance_data[2]);
 
 	// Output position of the vertex, in clip space : MVP * position
-	gl_Position =  MVP * vec4(instance_translation + vertexPosition_modelspace,1);
+	float scale = 2.0;
+	if (gl_InstanceID == 0) {
+		scale = 1.0;
+	} else if (gl_InstanceID ==1 )  {
+		scale = 40.0;
+	} else {
+		scale = 8.0 - instance_translation[1]/50.0;
+	}
+
+	gl_Position =  MVP * vec4(instance_translation + scale * vertexPosition_modelspace,1);
 	
 	// Position of the vertex, in worldspace : M * position
 	Position_worldspace = (M * vec4(instance_translation + vertexPosition_modelspace,1)).xyz;
