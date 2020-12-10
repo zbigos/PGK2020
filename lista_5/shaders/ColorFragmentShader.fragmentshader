@@ -19,6 +19,7 @@ out vec4 color;
 uniform sampler2D myTextureSampler;
 uniform mat4 MV;
 uniform vec3 LightPosition_worldspace[10];
+uniform int emission_sources[10];
 
 vec3 hsv2rgb(vec3 c)
 {
@@ -45,6 +46,13 @@ vec3 calculate_Phong_singular(vec3 PhongDiffuse, vec3 PhongSpecular, vec3 normal
 	return DiffusePartial + SpecularPartial; 
 }
 
+bool am_I_emitter(int me) {
+	for(int i = 0 ; i < 10; i++)
+		if(me == emission_sources[i])
+			return true;
+	return false;
+}
+
 vec3 calculate_Phong_group(vec3 Material) {
 	// load all needed variables
 
@@ -54,7 +62,7 @@ vec3 calculate_Phong_group(vec3 Material) {
 
 	// load light properties
 
-	if (iid >= 10) {
+	if (!am_I_emitter(iid)) {
 		vec3 c = MaterialAmbient;
 
 		for(int index = 0; index < 10; index += 1) {
@@ -84,5 +92,5 @@ vec3 calculate_Phong_group(vec3 Material) {
 }
 
 void main(){
-	color = vec4(calculate_Phong_group(mat_color), 1.0);	
+	color = vec4(calculate_Phong_group(mat_color), 0.6);	
 }

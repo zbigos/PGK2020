@@ -25,6 +25,9 @@ uniform mat4 MVP;
 uniform mat4 V;
 uniform mat4 M;
 uniform vec3 LightPosition_worldspace[10];
+
+uniform int emission_sources[10];
+
 uniform vec3 CameraPosition_worldspace;
 
 
@@ -49,7 +52,12 @@ void main(){
 	vec3 instance_translation = vec3(instance_data[0], instance_data[1], instance_data[2]);
 
 	// set scale of instance
-	float scale = 2.0;
+	float scale = 0.0;
+	if (gl_InstanceID == 99) {
+		scale = 1.0;
+	} else {
+		scale = 10.0;
+	}
 
 	// calculate the position via MVP
 	vec3 ddd = instance_translation + scale * vertexPosition_modelspace;

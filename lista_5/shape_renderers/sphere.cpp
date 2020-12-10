@@ -37,7 +37,7 @@ class Sphere {
         GLuint VID;
         GLuint LPUID;
         GLuint CPID;
-
+        GLuint EMISRCID;
         int triangle_count = 0;
         float aquarium_size = 200.0;
         
@@ -47,6 +47,7 @@ class Sphere {
         const int instances = 100;
         bool initialized = false;
         GLfloat *instance_buffer_data;
+        GLfloat *baked_buffer_data;
 
         glm::vec3 triangleNormal(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3) {
             glm::vec3 U = p2 - p1;
@@ -66,7 +67,7 @@ class Sphere {
             std::vector<glm::vec3> normals;
 
             /* generate the points on a sphere */
-            int resolution = 40;
+            int resolution = 100;
             Point_set.resize(resolution);
             
 
@@ -217,11 +218,12 @@ class Sphere {
     }
     
     int counter = 0;
-    void commit_instance_buffer(float px, float py, float pz, bool render_player) {
+    void commit_instance_buffer(float px, float py, float pz, bool render_player, bool commit_emishn_source) {
 
         if (!initialized) {
             instance_buffer_data = new GLfloat[instances * 4];
-            
+            baked_buffer_data = new GLfloat[instances * 4];
+
             for(int i = 0; i < instances; i++) {
                 instance_buffer_data[i * 4 + 0] = (float)(rand()%(int)(10.0*aquarium_size))/10.0;
                 instance_buffer_data[i * 4 + 1] = (float)(rand()%(int)(10.0*aquarium_size))/10.0;
@@ -272,8 +274,43 @@ class Sphere {
             }
         }
 
+        // Sortowanie timeeeee.
+        std::pair<double, int> sorting_lookaside_buffer[instances];
+        for(int i = 0; i < instances; i++) {
+            sorting_lookaside_buffer[i].second = i;
+            double a = instance_buffer_data[0] - instance_buffer_data[4*i + 0];
+            double b = instance_buffer_data[1] - instance_buffer_data[4*i + 1];
+            double c = instance_buffer_data[2] - instance_buffer_data[4*i + 2];
+            double distance = a*a + b*b + c*c;
+            sorting_lookaside_buffer[i].first = -distance;
+        }
+
+        std::sort(sorting_lookaside_buffer, sorting_lookaside_buffer+instances);
+
+        int lightemitters[10];
+        for(int i = 0; i < instances; i++) {
+            if (sorting_lookaside_buffer[i].second < 10) {
+                lightemitters[sorting_lookaside_buffer[i].second] = i;
+            }
+        }
+
+        printf("emission of lightemitters... -> ");
+        for(int i = 0; i < 10; i++) {
+            printf("%d, ", lightemitters[i]);
+        }
+        printf("\n");
+
+        if (commit_emishn_source)
+            glUniform1iv(EMISRCID, 10, &lightemitters[0]);
+
+        for(int i = 0; i < instances; i++) {
+            int translation_cell = sorting_lookaside_buffer[i].second;
+            for(int j = 0; j <= 3; j+= 1)
+                baked_buffer_data[i * 4 + j] = instance_buffer_data[translation_cell * 4 + j];
+        }
+
         glBindBuffer(GL_ARRAY_BUFFER, instancebuffer);
-        glBufferData(GL_ARRAY_BUFFER, 3 * sizeof(GLfloat) * instances, instance_buffer_data, GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, 4 * sizeof(GLfloat) * instances, baked_buffer_data, GL_STATIC_DRAW);
 
         glBindBuffer(GL_ARRAY_BUFFER, instancebuffer);
         glEnableVertexAttribArray(2);
@@ -298,7 +335,7 @@ class Sphere {
         LPUID = glGetUniformLocation(programID, "LightPosition_worldspace");
         CPID = glGetUniformLocation(programID, "CameraPosition_worldspace");
         LECID = glGetUniformLocation(programID, "LightEmitterColor");
-
+        EMISRCID = glGetUniformLocation(programID, "emission_sources");
         PositionID = glGetUniformLocation(programID, "position");
 
         printf("program %d, %d %d\n", programID, MatrixID, PositionID);
@@ -328,7 +365,7 @@ class Sphere {
 
             load_shaders();
             set_buffers();
-            commit_instance_buffer(0.0, 0.0, 0.0, true);
+            commit_instance_buffer(0.0, 0.0, 0.0, true, false);
         }
 
         void draw(float x, float y, float z, bool render_player, glm::mat4 MVP, glm::mat4 V, glm::mat4 M, glm::vec3 CP) {
@@ -336,7 +373,7 @@ class Sphere {
 		    glUseProgram(programID);
             bindBuffers();
 
-            commit_instance_buffer(x, y, z, render_player);
+            commit_instance_buffer(x, y, z, render_player, true);
     		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
 
     		glUniformMatrix4fv(MID, 1, GL_FALSE, &M[0][0]);
