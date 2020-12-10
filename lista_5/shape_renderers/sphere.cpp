@@ -32,6 +32,7 @@ class Sphere {
         GLuint MatrixID;
         GLuint PositionID;
 
+        GLuint LECID;
         GLuint MID;
         GLuint VID;
         GLuint LPUID;
@@ -252,7 +253,7 @@ class Sphere {
             float aaax = cos(PI * orbit_agle/180.0) * orbit_distance;
             float aaay = sin(PI * orbit_agle/180.0) * orbit_distance;
             float aaaz = aquarium_size/2.0;
-
+            
             instance_buffer_data[4] = aaax + aaaz;
             instance_buffer_data[5] = aaay + aaaz;
             instance_buffer_data[6] = aaaz;
@@ -260,7 +261,8 @@ class Sphere {
 
 
             for(int i = 2; i < instances; i++) {
-                instance_buffer_data[i * 4 + 1] -= 0.0001 * (2*(10.0*aquarium_size)-instance_buffer_data[i * 3 + 1]);
+                //instance_buffer_data[i * 4 + 1] -= 0.0001 * (2*(10.0*aquarium_size)-instance_buffer_data[i * 3 + 1]);
+
                 if (instance_buffer_data[i * 4 + 1] < 0.0) {
                     instance_buffer_data[i * 4 + 1] = (float)aquarium_size;
                     instance_buffer_data[i * 4 + 0] = (float)(rand()%(int)(aquarium_size*10.0))/10.0;
@@ -295,6 +297,7 @@ class Sphere {
         VID = glGetUniformLocation(programID, "V");
         LPUID = glGetUniformLocation(programID, "LightPosition_worldspace");
         CPID = glGetUniformLocation(programID, "CameraPosition_worldspace");
+        LECID = glGetUniformLocation(programID, "LightEmitterColor");
 
         PositionID = glGetUniformLocation(programID, "position");
 
@@ -338,10 +341,23 @@ class Sphere {
 
     		glUniformMatrix4fv(MID, 1, GL_FALSE, &M[0][0]);
     		glUniformMatrix4fv(VID, 1, GL_FALSE, &V[0][0]);
+
     		glUniform3f(CPID, CP[0], CP[1], CP[2]);
 
-            glUniform3f(LPUID, instance_buffer_data[4], instance_buffer_data[5], instance_buffer_data[6]);
-    
+            GLfloat light_positions[30];
+            GLfloat light_hueues[10];
+            for(int i = 0 ; i < 10; i++) {
+                light_positions[3 * i + 0] = instance_buffer_data[4 * i + 0];
+                light_positions[3 * i + 1] = instance_buffer_data[4 * i + 1];
+                light_positions[3 * i + 2] = instance_buffer_data[4 * i + 2];
+                light_hueues[i] = instance_buffer_data[4 * i + 3];
+            }
+
+            // ustalamy sobie, że pierwsze 10 kulek świeci
+            glUniform3fv(LPUID, 10, &light_positions[0]);
+            glUniform3fv(LPUID, 10, &light_positions[0]);
+            glUniform1fv(LECID, 10, &light_hueues[0]);
+
             AGLErrors("uniform dumps failed in sphere.cpp");
 
             //glDrawArrays(GL_TRIANGLES, 0, triangle_count);

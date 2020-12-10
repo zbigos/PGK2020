@@ -37,8 +37,8 @@ vec3 hsv2rgb(vec3 c)
 
 void calculate_light_sources(int index, vec3 instance_translation, vec3 EyeDirection_cameraspace) {
 
-	vec3 LightPosition_cameraspace = ( V * vec4(LightPosition_worldspace[0],1)).xyz;
-	LightDirection_cameraspace[0] = LightPosition_cameraspace + EyeDirection_cameraspace;
+	vec3 LightPosition_cameraspace = ( V * vec4(LightPosition_worldspace[index],1)).xyz;
+	LightDirection_cameraspace[index] = LightPosition_cameraspace + EyeDirection_cameraspace;
 }
 
 void main(){
@@ -52,17 +52,19 @@ void main(){
 	float scale = 2.0;
 
 	// calculate the position via MVP
+	vec3 ddd = instance_translation + scale * vertexPosition_modelspace;
 	gl_Position =  MVP * vec4(instance_translation + scale * vertexPosition_modelspace,1);
-	mat_color = hsv2rgb(vec3(instance_data[3], 1.0, 1.0));
 
-	EyeDirection_cameraspace = -( V * M * vec4(instance_translation + vertexPosition_modelspace,1)).xyz;
+	EyeDirection_cameraspace = -( V * M * vec4(ddd,1)).xyz;
 	Normal_cameraspace = ( V * M * vec4(vertexNormal_modelspace,0)).xyz;
 
 	// calculate lightsource positions.
 	for(int i = 0; i < 10; i++) {
-		calculate_light_sources(i, instance_translation, EyeDirection_cameraspace);
+		calculate_light_sources(i, ddd, EyeDirection_cameraspace);
 	}
 
 	// something something stolen from tutorial
-	Position_worldspace = (M * vec4(instance_translation + vertexPosition_modelspace,1)).xyz;
+	Position_worldspace = (M * vec4(ddd,1)).xyz;
+
+	mat_color = vec3(0.2, 0.2, 0.2) + 0.8 * hsv2rgb(vec3(instance_data[3], 1.0, 1.0));
 }
