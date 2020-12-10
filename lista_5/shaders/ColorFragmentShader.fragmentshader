@@ -4,11 +4,13 @@
 in vec3 Position_worldspace;
 in vec3 Normal_cameraspace;
 in vec3 EyeDirection_cameraspace;
-in vec3 LightDirection_cameraspace;
+in vec3 LightDirection_cameraspace[10];
+
 in vec3 mat_color;
+
+flat in int iid;
 // Ouput data
 out vec4 color;
-flat in int iid;
 
 
 // Values that stay constant for the whole mesh.
@@ -16,16 +18,16 @@ uniform sampler2D myTextureSampler;
 uniform mat4 MV;
 uniform vec3 LightPosition_worldspace;
 
-vec3 calculate_Phong_singular(vec3 PhongDiffuse, vec3 PhongSpecular, vec3 LightColor, float LightPower, vec3 LightPosition) {
+vec3 calculate_Phong_singular(vec3 PhongDiffuse, vec3 PhongSpecular, vec3 normal, vec3 EyeDirection, vec3 LightColor, float LightPower, vec3 LightPosition) {
 	// calculate per light properties
 	float distance = length(Position_worldspace - LightPosition);
 
 	// calculate diffuse angle the angle between camera and light
-	float cosTheta = clamp(dot(normalize(Normal_cameraspace), normalize(LightPosition)), 0, 1);
+	float cosTheta = clamp(dot(normalize(normal), normalize(LightPosition)), 0, 1);
 
 	// calculate something else for magnum Phong
-	vec3 R = reflect(normalize(LightPosition),normalize(Normal_cameraspace));
-	float cosAlpha = clamp(dot(normalize(EyeDirection_cameraspace), -R), 0, 1);
+	vec3 R = reflect(normalize(LightPosition),normalize(normal));
+	float cosAlpha = clamp(dot(normalize(EyeDirection), -R), 0, 1);
 
 	vec3 DiffusePartial = PhongDiffuse * vec3(0.0, 1.0, 0.0) * LightPower * cosTheta / (distance*distance);
 	vec3 SpecularPartial = PhongSpecular * vec3(0.0, 0.0, 1.0) * LightPower * pow(cosAlpha,5) / (distance*distance);
@@ -44,7 +46,7 @@ vec3 calculate_Phong_group(vec3 Material) {
 	vec3 LightColor = vec3(1.0, 0.0, 0.0);
 	float LightPower = 50000.0f;
 
-	vec3 c = MaterialAmbient + calculate_Phong_singular(MaterialDiffuse, MaterialSpecular, LightColor, LightPower, LightDirection_cameraspace);
+	vec3 c = MaterialAmbient + calculate_Phong_singular(MaterialDiffuse, MaterialSpecular, Normal_cameraspace, EyeDirection_cameraspace, LightColor, LightPower, LightDirection_cameraspace[0]);
 
 	return c;
 }
