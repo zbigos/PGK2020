@@ -146,6 +146,8 @@ Cube Frame1, Frame2, Frame3;
 Cube Frame1a, Frame2a, Frame3a, Frame4a, Frame5a, Frame6a;
 Cube Frame1b, Frame2b, Frame3b;
 
+Cube Endpoint1, Endpoint2, Endpoint3, Endpoint4;
+
 Cube Floor;
 
 
@@ -214,6 +216,19 @@ int main( void )
 	Frame1b.init(T1 + T2 - Too, T1 + T2 + T3 - Too);
 	Frame2b.init(T1 + T3 - Too, T1 + T2 + T3 - Too);
 	Frame3b.init(T2 + T3 - Too, T1 + T2 + T3 - Too);
+	
+	glm::vec3 framemid = vec3(wallsize/2.0, wallsize/2.0, 0.0);
+	glm::vec3 eoffset = vec3(10, 10, 0.0);
+	glm::vec3 framemid2 = vec3(wallsize/2.0, wallsize/2.0, wallsize);
+	Endpoint1.init(framemid - eoffset, framemid + eoffset + To);
+	Endpoint2.init(framemid2 - eoffset, framemid2 + eoffset + To);
+
+	glm::vec3 eoffset2 = vec3(0, 10, 10);
+	glm::vec3 framemid3 = vec3(0.0, wallsize/2.0, wallsize/2.0);
+	Endpoint3.init(framemid3 - eoffset2, framemid3 + eoffset2 + To);
+	glm::vec3 framemid4 = vec3(wallsize, wallsize/2.0, wallsize/2.0);
+	Endpoint4.init(framemid4 - eoffset2, framemid4 + eoffset2 + To);
+
 
 	Floor.init(T2, T1 + T2 + T3 - Too - To);
 
@@ -301,6 +316,11 @@ int main( void )
 		Frame2b.draw(MVP, vec3(0.0, 0.0, 0.0));
 		Frame3b.draw(MVP, vec3(0.0, 0.0, 0.0));
 
+		Endpoint1.draw(MVP, vec3(0.0, 1.0, 0.0));
+		Endpoint2.draw(MVP, vec3(0.0, 1.0, 0.0));
+		Endpoint3.draw(MVP, vec3(0.0, 1.0, 0.0));
+		Endpoint4.draw(MVP, vec3(0.0, 1.0, 0.0));
+		
 		Floor.draw(MVP, vec3(0.298, 0.274, 0.196));
 
 		AGLErrors("yeeted while processing endpoint draw");
