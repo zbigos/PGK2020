@@ -84,10 +84,10 @@ void handle_controls(glm::vec3 &PerhapsCameraPosition, glm::vec3 &up, bool proce
 	glfwGetCursorPos(window, &mousex, &mousey);
 	double mouseSpeed = 0.01;
 	// Reset mouse position for next frame
-	glfwSetCursorPos(window, 1024/2, 1024/2);
+	glfwSetCursorPos(window, 1400/2, 1400/2);
 	if (process) {
-		horizontalAngle -= mouseSpeed * float(1024/2 - mousex );
-		verticalAngle += mouseSpeed * float( 1024/2 - mousey );
+		horizontalAngle -= mouseSpeed * float(1400/2 - mousex );
+		verticalAngle += mouseSpeed * float( 1400/2 - mousey );
 	}
 
 	if (verticalAngle < 0.5 * 3.14)
@@ -164,7 +164,7 @@ int main( void )
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	// Open a window and create its OpenGL context
-	window = glfwCreateWindow( 1024, 1024, "przegrałeś w gre", NULL, NULL);
+	window = glfwCreateWindow( 1400, 1400, "przegrałeś w gre", NULL, NULL);
 	if( window == NULL ){
 		fprintf( stderr, "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible. Try the 2.1 version of the tutorials.\n" );
 		getchar();
@@ -320,7 +320,7 @@ int main( void )
 		Endpoint2.draw(MVP, vec3(0.0, 1.0, 0.0));
 		Endpoint3.draw(MVP, vec3(0.0, 1.0, 0.0));
 		Endpoint4.draw(MVP, vec3(0.0, 1.0, 0.0));
-		
+
 		Floor.draw(MVP, vec3(0.298, 0.274, 0.196));
 
 		AGLErrors("yeeted while processing endpoint draw");

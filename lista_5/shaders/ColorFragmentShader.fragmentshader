@@ -58,7 +58,7 @@ vec3 calculate_Phong_group(vec3 Material) {
 
 	vec3 MaterialDiffuse = Material;
 	vec3 MaterialSpecular = vec3(0.3,0.3,0.3) * Material;
-	vec3 MaterialAmbient = vec3(0.1,0.1,0.1) * Material;
+	vec3 MaterialAmbient = vec3(0.2,0.2,0.2) * Material;
 
 	// load light properties
 
@@ -92,5 +92,5 @@ vec3 calculate_Phong_group(vec3 Material) {
 }
 
 void main(){
-	color = vec4(calculate_Phong_group(mat_color), 0.6);	
+	color = vec4(calculate_Phong_group(mat_color), 0.5);	
 }

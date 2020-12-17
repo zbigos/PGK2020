@@ -263,7 +263,7 @@ class Sphere {
 
 
             for(int i = 2; i < instances; i++) {
-                instance_buffer_data[i * 4 + 1] -= 0.0001 * (2*(10.0*aquarium_size)-instance_buffer_data[i * 3 + 1]);
+                //instance_buffer_data[i * 4 + 1] -= 0.0001 * (2*(10.0*aquarium_size)-instance_buffer_data[i * 3 + 1]);
 
                 if (instance_buffer_data[i * 4 + 1] < 0.0) {
                     instance_buffer_data[i * 4 + 1] = (float)aquarium_size;
