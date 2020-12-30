@@ -6,5 +6,5 @@ out vec3 vPosition;
 
 void main()
 {
-    vPosition = Position.xyz + CameraPosition;
+    vPosition = Position.xyz;
 }

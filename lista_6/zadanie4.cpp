@@ -176,7 +176,7 @@ int main( void )
 	int gamebind = 2;
 
 	Chunk Patch;
-	Patch.init(shaderhandle, bufferlocation, 500, 500);
+	Patch.init(shaderhandle, bufferlocation, 4, 4, 20);
 	glm::vec3 CameraPosition = glm::vec3(0.0, 0.0, 0.0);
 	glm::vec3 PerhapsCameraPosition = glm::vec3(blkscale, blkscale, blkscale);
 	glm::vec3 up;
@@ -185,7 +185,8 @@ int main( void )
 		glfwPollEvents();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		handle_controls(CameraPosition, up, true);
+		if (gamebind == 2)
+			handle_controls(CameraPosition, up, true);
 
 		/* game logic, handle moving target shape around, advance level stage.*/
 

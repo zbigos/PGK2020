@@ -86,7 +86,7 @@ std::pair<GLuint, GLuint> BuildPipeline() {
     glAttachShader(ShaderHandle, VertexShaderHandle);
     glAttachShader(ShaderHandle, TesselationControlShaderHandle);
     glAttachShader(ShaderHandle, TesselationEvaluationShaderHandle);
-    glAttachShader(ShaderHandle, GeometryShaderHandle);
+    //glAttachShader(ShaderHandle, GeometryShaderHandle);
     glAttachShader(ShaderHandle, FragmentShaderHandle);
 
     /* no fucking clue as to what this is*/
