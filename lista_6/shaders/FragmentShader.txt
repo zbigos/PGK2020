@@ -9,24 +9,20 @@ uniform vec3 LightPosition;
 uniform vec3 DiffuseMaterial;
 uniform vec3 AmbientMaterial;
 
-float amplify(float d, float scale, float offset)
-{
-    d = scale * d + offset;
-    d = clamp(d, 0, 1);
-    d = 1 - exp2(-2*d*d);
-    return d;
-}
+uniform sampler2D myTextureSampler;
+in vec2 UV; // czymkolwiek to nie jest
 
 void main()
 {
-    vec3 N = normalize(gFacetNormal);
-    vec3 L = LightPosition;
-    float df = 0.5f; //abs(dot(N, L));
-    vec3 color = AmbientMaterial + df * DiffuseMaterial;
+    float ht = texture( myTextureSampler, UV ).r*65536.0;
 
-    float d1 = min(min(gTriDistance.x, gTriDistance.y), gTriDistance.z);
-    float d2 = min(min(gPatchDistance.x, gPatchDistance.y), gPatchDistance.z);
-    color = amplify(d1, 40, -0.5) * amplify(d2, 60, -0.5) * color;
+    vec3 color = vec3(0.0, 0.0, 0.0);
+
+    if      (ht < 0  )   color = vec3(0.,       0.,        1.); //blue
+    else if (ht < 500)   color = vec3(0.,       ht/500,    0.); //->green
+    else if (ht < 1000)  color = vec3(ht/500-1, 1.,        0.); //->yellow
+    else if (ht < 2000)  color = vec3(1.,       2.-ht/1000,0.); //->red
+    else                 color = vec3(1.,       ht/2000-1 ,ht/2000-1);  //->white
 
     FragColor = vec4(color, 1.0);
 }

@@ -32,6 +32,8 @@ using namespace glm;
 #include "zadanie4.hpp"
 #include "shader_pipeline_builder.cpp"
 
+#include "maputils.cpp"
+
 #ifdef _WIN32
     #include <windows.h>
 #else
@@ -165,9 +167,7 @@ int main( void )
 
 	glfwSetCursorPos(window, 1024/2, 1024/2);
 	
-	std::pair<int, int> shader_result = BuildPipeline();
-	GLuint shaderhandle = shader_result.first;
-	GLuint bufferlocation = shader_result.second;
+
 	
 	float size_mod = 1.0;
 
@@ -175,8 +175,15 @@ int main( void )
 	
 	int gamebind = 2;
 
-	Chunk Patch;
-	Patch.init(shaderhandle, bufferlocation, 4, 4, 20);
+	short int *testmapdata = readfile_and_downsample("maps/N45E006.hgt", 1);
+
+	std::pair<int, int> shader_result = BuildPipeline();
+	GLuint shaderhandle = shader_result.first;
+	GLuint bufferlocation = shader_result.second;
+	Chunk Patch1;
+	Patch1.init(shaderhandle, bufferlocation, 64, 64, 20, testmapdata);
+
+
 	glm::vec3 CameraPosition = glm::vec3(0.0, 0.0, 0.0);
 	glm::vec3 PerhapsCameraPosition = glm::vec3(blkscale, blkscale, blkscale);
 	glm::vec3 up;
@@ -197,7 +204,9 @@ int main( void )
 		glm::mat4 Model      = glm::mat4(1.0);
 		glm::mat4 MVP = Projection * ViewMatrix * Model;
 
-		Patch.draw(CameraPosition, Model, Projection, MVP);
+		glm::vec3 p1p(0.0, 0.0, 0.0);
+		Patch1.draw(p1p, CameraPosition, Model, Projection, MVP);
+
 		AGLErrors("main-loopbegin");
 
 		glfwSwapBuffers(window);

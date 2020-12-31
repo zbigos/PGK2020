@@ -8,10 +8,13 @@ uniform mat4 Projection;
 uniform mat4 Modelview;
 uniform mat4 MVP;
 uniform int preteselation;
+uniform vec3 ChunkPosition;
+out vec2 UV;
+uniform sampler2D myTextureSampler;
+
 
 void main()
 {
-
     vec3 p0 = mix(tcPosition[0], tcPosition[3], gl_TessCoord.x);
     vec3 p1 = mix(tcPosition[1], tcPosition[2], gl_TessCoord.x);
     vec3 p = mix(p0, p1, gl_TessCoord.y);
@@ -20,5 +23,10 @@ void main()
     //tePosition = normalize(p); // project on unit sphere
     //gl_Position = MVP * vec4(tePosition, 1);
 
-    gl_Position = MVP * vec4(gl_TessCoord + vec3(gl_PrimitiveID/preteselation, gl_PrimitiveID%preteselation, 0.0), 1);
+
+    UV = ((1.0/preteselation) * (gl_TessCoord + vec3(gl_PrimitiveID/preteselation, gl_PrimitiveID%preteselation, 0.0)).xy);
+
+    float ht = 0.0;// texture( myTextureSampler, UV ).r * 10.0;
+
+    gl_Position = MVP * vec4(ChunkPosition + (1.0/preteselation) * (gl_TessCoord + vec3(gl_PrimitiveID/preteselation, gl_PrimitiveID%preteselation, ht)), 1);
 }

@@ -42,10 +42,15 @@ class Chunk {
         GLuint UMVP_;
         GLuint IndexCount;
         GLuint Pretlsation_;
-
+        GLuint UChunkPosition_;
+        GLuint UTextureSampler_;
 
         GLuint PatchCount;
         GLuint Preteselation_level;
+
+
+        GLuint TextureId;
+
         void succ_uniform_ids() {
             UProjectionMatrix_ = glGetUniformLocation(ShaderHandle_, "Projection");
             UModelViewMatrix_ = glGetUniformLocation(ShaderHandle_, "Modelview");
@@ -58,9 +63,29 @@ class Chunk {
             UCameraPosition_ = glGetUniformLocation(ShaderHandle_, "CameraPosition");
             UMVP_ = glGetUniformLocation(ShaderHandle_, "MVP");
             Pretlsation_ = glGetUniformLocation(ShaderHandle_, "preteselation");
+            UChunkPosition_ = glGetUniformLocation(ShaderHandle_, "ChunkPosition");
+            UTextureSampler_ = glGetUniformLocation(ShaderHandle_, "myTextureSampler");
         }
 
-        void set_buffers(GLuint preteselation_level) {
+        void set_buffers(GLuint preteselation_level, short int* mapdata) {
+            glGenTextures(1, &TextureId);
+            glBindTexture(GL_TEXTURE_2D, TextureId);
+
+    		glTexImage2D(
+                GL_TEXTURE_2D, 
+                0, 
+                GL_RED, // dziękuję bardzo stackoverflow. 
+                1200, 
+                1200, 
+                0, 
+                GL_RED, // naprawdę 0 pojęcia co tu się dzieje xD 
+                GL_SHORT,
+                mapdata
+            ); 
+
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
             // pretesselate right now.
             GLuint tslation_faces = preteselation_level * preteselation_level;
             GLuint tslation_verts = (preteselation_level+1) * (preteselation_level);
@@ -100,23 +125,22 @@ class Chunk {
             glGenBuffers(1, &indices);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indices);
             glBufferData(GL_ELEMENT_ARRAY_BUFFER, tslation_faces * 4 * sizeof(int), Faces, GL_STATIC_DRAW);
+
+            std::cout << "initialized with preteselation = " << preteselation_level << " teselation = " << tesselation_outer_ << std::endl;
         }
 
-        void bindBuffers() {
-
-        }
 
     public:
-        void init(GLuint ShaderHandle, GLuint BufferLocation, GLuint TesselationInner, GLuint TesselationOuter, GLuint preteselation_level) {
+        void init(GLuint ShaderHandle, GLuint BufferLocation, GLuint TesselationInner, GLuint TesselationOuter, GLuint preteselation_level, short int *mapdata) {
             BufferLocation_ = BufferLocation;
             ShaderHandle_ = ShaderHandle;
             tesselation_outer_ = TesselationOuter;
             tesselation_inner_ = TesselationInner;
             succ_uniform_ids();
-            set_buffers(preteselation_level);
+            set_buffers(preteselation_level, mapdata);
         }
 
-        void draw(glm::vec3 C, glm::mat4 M, glm::mat4 P, glm::mat4 MVP) {
+        void draw(glm::vec3 msp, glm::vec3 C, glm::mat4 M, glm::mat4 P, glm::mat4 MVP) {
             glUseProgram(ShaderHandle_);
             glBindVertexArray(vao);
             glBindBuffer(GL_ARRAY_BUFFER, positions);
@@ -131,9 +155,15 @@ class Chunk {
             glUniform3f(ULightPosition_, 0.25, 0.25, 1.0);
             printf("inserting to uniform %lf %lf %lf\n", C[0], C[1], C[2]);
             glUniform3f(UCameraPosition_, C[0], C[1], C[2]);
+        
+            glUniform3f(UChunkPosition_, msp[0], msp[1], msp[2]);
 
             glUniformMatrix4fv(UProjectionMatrix_, 1, 0, &M[0][0]);
             glUniformMatrix4fv(UModelViewMatrix_, 1, 0, &P[0][0]);
+
+            glActiveTexture(GL_TEXTURE0);
+            glUniform1i(UTextureSampler_, 0);
+
 
             /* lights and colors, do we even need these? */
             glUniform3f(UAmbientMaterial_, 0.04f, 0.04f, 0.04f);
