@@ -1,11 +1,38 @@
 #include <iostream>
 #include <fstream>
-
+#include <dirent.h>
 #define NATIVE_MAP_RESOLUTION 1201
 #define SQ(x) ((x) * (x))
 
 using std::vector;
 using std::string;
+
+vector<string> gettargets() {
+    vector<string> targets;
+
+    DIR *dir;
+    struct dirent *ent;
+    
+    if ((dir = opendir ("test/maps")) != NULL) {
+        while ((ent = readdir (dir)) != NULL) {
+            if (ent->d_name[0] != '.') {
+                string mname = ent->d_name;
+                if (targets.size() < 200)
+                    targets.push_back("test/maps/" + mname);
+            }
+            printf ("%s\n", ent->d_name);
+        }
+
+        closedir (dir);
+    } else {
+        std::cout << "isn't a valid directory" << std::endl << "terminating" << std::endl;
+        exit(0);
+    }
+
+    std::cout << "located " << targets.size() << " maps..." << std::endl;
+
+    return targets;
+}
 
 void readfile(string filename, short int *mapdump) {
     std::ifstream mapdata(filename, std::ios::out | std::ios::binary);

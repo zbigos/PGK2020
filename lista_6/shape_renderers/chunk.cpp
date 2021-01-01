@@ -51,6 +51,10 @@ class Chunk {
 
         GLuint TextureId;
 
+        glm::vec3 ooffset;
+
+        short int *maphandle;
+
         void succ_uniform_ids() {
             UProjectionMatrix_ = glGetUniformLocation(ShaderHandle_, "Projection");
             UModelViewMatrix_ = glGetUniformLocation(ShaderHandle_, "Modelview");
@@ -68,7 +72,10 @@ class Chunk {
         }
 
         void set_buffers(GLuint preteselation_level, short int* mapdata) {
+            maphandle = mapdata;
+
             glGenTextures(1, &TextureId);
+            std::cout << "texture handl " << TextureId << std::endl;
             glBindTexture(GL_TEXTURE_2D, TextureId);
 
     		glTexImage2D(
@@ -131,6 +138,14 @@ class Chunk {
 
 
     public:
+        void PrintMapSignature() {
+            for(int i = 0 ; i < 10; i+=1) {
+                printf("%d ", maphandle[i]);
+            }
+
+            printf("\n");
+        }
+
         void init(GLuint ShaderHandle, GLuint BufferLocation, GLuint TesselationInner, GLuint TesselationOuter, GLuint preteselation_level, short int *mapdata) {
             BufferLocation_ = BufferLocation;
             ShaderHandle_ = ShaderHandle;
@@ -140,7 +155,11 @@ class Chunk {
             set_buffers(preteselation_level, mapdata);
         }
 
-        void draw(glm::vec3 msp, glm::vec3 C, glm::mat4 M, glm::mat4 P, glm::mat4 MVP) {
+        void setOoffset(glm::vec3 offset) {
+            ooffset = offset;
+        }
+
+        void draw(glm::vec3 C, glm::mat4 M, glm::mat4 P, glm::mat4 MVP) {
             glUseProgram(ShaderHandle_);
             glBindVertexArray(vao);
             glBindBuffer(GL_ARRAY_BUFFER, positions);
@@ -156,11 +175,12 @@ class Chunk {
             printf("inserting to uniform %lf %lf %lf\n", C[0], C[1], C[2]);
             glUniform3f(UCameraPosition_, C[0], C[1], C[2]);
         
-            glUniform3f(UChunkPosition_, msp[0], msp[1], msp[2]);
+            glUniform3f(UChunkPosition_, ooffset[0], ooffset[1], ooffset[2]);
 
             glUniformMatrix4fv(UProjectionMatrix_, 1, 0, &M[0][0]);
             glUniformMatrix4fv(UModelViewMatrix_, 1, 0, &P[0][0]);
 
+            glBindTexture(GL_TEXTURE_2D, TextureId);
             glActiveTexture(GL_TEXTURE0);
             glUniform1i(UTextureSampler_, 0);
 
@@ -168,7 +188,7 @@ class Chunk {
             /* lights and colors, do we even need these? */
             glUniform3f(UAmbientMaterial_, 0.04f, 0.04f, 0.04f);
             glUniform3f(UDiffuseMaterial_, 0, 0.75, 0.75);
-            glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+            //glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 
             /* to mówi ile vertexów składa się na jeden patch */
             glPatchParameteri(GL_PATCH_VERTICES, 4); 

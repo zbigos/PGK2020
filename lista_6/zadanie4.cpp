@@ -175,14 +175,26 @@ int main( void )
 	
 	int gamebind = 2;
 
-	short int *testmapdata = readfile_and_downsample("maps/N45E006.hgt", 1);
-
+	
 	std::pair<int, int> shader_result = BuildPipeline();
 	GLuint shaderhandle = shader_result.first;
 	GLuint bufferlocation = shader_result.second;
-	Chunk Patch1;
-	Patch1.init(shaderhandle, bufferlocation, 64, 64, 20, testmapdata);
 
+	std::vector<Chunk> mapdata;
+
+	std::vector<std::string> maptargets = gettargets();
+
+	for(int i = 0 ; i < maptargets.size(); i += 1) {
+		short int *mapv = readfile_and_downsample(maptargets[i], 1);
+		Chunk tmp_patch;
+		tmp_patch.init(shaderhandle, bufferlocation, 64, 64, 20, mapv);
+		tmp_patch.setOoffset(glm::vec3((float)(i/10), (float)(i%10), 0.0));
+		mapdata.push_back(tmp_patch);
+	}
+
+	for(int i = 0 ; i < mapdata.size(); i += 1) {
+		mapdata[i].PrintMapSignature();
+	}
 
 	glm::vec3 CameraPosition = glm::vec3(0.0, 0.0, 0.0);
 	glm::vec3 PerhapsCameraPosition = glm::vec3(blkscale, blkscale, blkscale);
@@ -204,8 +216,9 @@ int main( void )
 		glm::mat4 Model      = glm::mat4(1.0);
 		glm::mat4 MVP = Projection * ViewMatrix * Model;
 
-		glm::vec3 p1p(0.0, 0.0, 0.0);
-		Patch1.draw(p1p, CameraPosition, Model, Projection, MVP);
+		for(int i = 0; i < mapdata.size(); i += 1) {
+			mapdata[i].draw(CameraPosition, Model, Projection, MVP);
+		}
 
 		AGLErrors("main-loopbegin");
 

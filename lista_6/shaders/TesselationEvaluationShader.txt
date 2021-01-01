@@ -26,7 +26,7 @@ void main()
 
     UV = ((1.0/preteselation) * (gl_TessCoord + vec3(gl_PrimitiveID/preteselation, gl_PrimitiveID%preteselation, 0.0)).xy);
 
-    float ht = 0.0;// texture( myTextureSampler, UV ).r * 10.0;
+    float ht = 0.0; //= texture( myTextureSampler, UV ).r * 5.0;
 
     gl_Position = MVP * vec4(ChunkPosition + (1.0/preteselation) * (gl_TessCoord + vec3(gl_PrimitiveID/preteselation, gl_PrimitiveID%preteselation, ht)), 1);
 }
