@@ -105,7 +105,7 @@ void handle_controls(glm::vec3 &PerhapsCameraPosition, glm::vec3 &up, bool proce
 	up = glm::cross(right, CameraDirection );
 
 	float deltaTime = 1.0;
-	float speed = 0.05;
+	float speed = 0.5;
 	// Move forward
 	if (glfwGetKey( window, GLFW_KEY_W ) == GLFW_PRESS){
 		PerhapsCameraPosition += CameraDirection * deltaTime * speed;
@@ -187,8 +187,20 @@ int main( void )
 	for(int i = 0 ; i < maptargets.size(); i += 1) {
 		short int *mapv = readfile_and_downsample(maptargets[i], 1);
 		Chunk tmp_patch;
-		tmp_patch.init(shaderhandle, bufferlocation, 64, 64, 20, mapv);
-		tmp_patch.setOoffset(glm::vec3((float)(i/10), (float)(i%10), 0.0));
+		tmp_patch.init(shaderhandle, bufferlocation, 8, 8, 20, mapv);
+
+		int maptlen = maptargets[i].size();
+		int moffx = 180 - ((maptargets[i][maptlen-7] - '0') * 100 + (maptargets[i][maptlen-6] - '0') * 10 + (maptargets[i][maptlen-5] - '0') * 1);
+		if (maptargets[i][maptlen-8] == 'E')
+			moffx *= -1;
+		else
+			moffx -= 360;
+
+		int moffy = (maptargets[i][maptlen-10] - '0') * 10 + (maptargets[i][maptlen-9] - '0') * 1;
+		if (maptargets[i][maptlen-11] == 'N')
+			moffy *= -1;
+
+		tmp_patch.setOoffset(glm::vec3((float)moffx, (float)moffy, 0.0));
 		mapdata.push_back(tmp_patch);
 	}
 

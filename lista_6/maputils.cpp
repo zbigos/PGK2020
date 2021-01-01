@@ -17,8 +17,7 @@ vector<string> gettargets() {
         while ((ent = readdir (dir)) != NULL) {
             if (ent->d_name[0] != '.') {
                 string mname = ent->d_name;
-                if (targets.size() < 200)
-                    targets.push_back("test/maps/" + mname);
+                targets.push_back("test/maps/" + mname);
             }
             printf ("%s\n", ent->d_name);
         }
