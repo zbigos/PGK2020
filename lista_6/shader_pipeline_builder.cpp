@@ -71,12 +71,7 @@ std::pair<GLuint, GLuint> BuildPipeline() {
     GLuint TesselationEvaluationShaderHandle = glCreateShader(GL_TESS_EVALUATION_SHADER);
     CompileShader(TesselationEvaluationShaderHandle, TesselationEvaluationShaderSource, "shaders/TesselationEvaluationShader.txt");
 
-    std::cout << "finished compiling evaluation control shader" << std::endl << "compiling geometry shader" << std::endl;
-    std::vector<string> GeometryShaderSource = ReadShader("shaders/GeometryShader.txt");
-    GLuint GeometryShaderHandle = glCreateShader(GL_GEOMETRY_SHADER);
-    CompileShader(GeometryShaderHandle, GeometryShaderSource, "shaders/GeometryShader.txt");
-
-    std::cout << "finished compiling geometry shader" << std::endl << "compiling fragment shader" << std::endl;
+    std::cout << "finished compiling tesselation control shader" << std::endl << "compiling fragment shader" << std::endl;
     std::vector<string> FragmentShaderSource = ReadShader("shaders/FragmentShader.txt");
     GLuint FragmentShaderHandle = glCreateShader(GL_FRAGMENT_SHADER);
     CompileShader(FragmentShaderHandle, FragmentShaderSource, "shaders/FragmentShader.txt");
@@ -86,7 +81,6 @@ std::pair<GLuint, GLuint> BuildPipeline() {
     glAttachShader(ShaderHandle, VertexShaderHandle);
     glAttachShader(ShaderHandle, TesselationControlShaderHandle);
     glAttachShader(ShaderHandle, TesselationEvaluationShaderHandle);
-    //glAttachShader(ShaderHandle, GeometryShaderHandle);
     glAttachShader(ShaderHandle, FragmentShaderHandle);
 
     /* no fucking clue as to what this is*/

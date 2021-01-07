@@ -11,22 +11,38 @@ uniform int preteselation;
 uniform vec3 ChunkPosition;
 out vec2 UV;
 uniform sampler2D myTextureSampler;
-
+uniform int background;
+uniform int cartesian;
 
 void main()
 {
-    vec3 p0 = mix(tcPosition[0], tcPosition[3], gl_TessCoord.x);
-    vec3 p1 = mix(tcPosition[1], tcPosition[2], gl_TessCoord.x);
-    vec3 p = mix(p0, p1, gl_TessCoord.y);
-
-    //tePatchDistance = gl_TessCoord.xy;
-    //tePosition = normalize(p); // project on unit sphere
-    //gl_Position = MVP * vec4(tePosition, 1);
-
-
     UV = ((1.0/preteselation) * (gl_TessCoord + vec3(gl_PrimitiveID/preteselation, gl_PrimitiveID%preteselation, 0.0)).xy);
 
-    float ht = 0.0; //= texture( myTextureSampler, UV ).r * 5.0;
+    float ht = 1.0;
+    if (background == 0) 
+        ht = texture( myTextureSampler, UV ).r * 0.1 + 1.0;
 
-    gl_Position = MVP * vec4(ChunkPosition + (1.0/preteselation) * (gl_TessCoord + vec3(gl_PrimitiveID/preteselation, gl_PrimitiveID%preteselation, ht)), 1);
+    vec3 cartesian_position = ChunkPosition + (1.0/preteselation) * (gl_TessCoord + vec3(gl_PrimitiveID/preteselation, gl_PrimitiveID%preteselation, ht));
+
+
+    vec3 normcartesian = vec3(cartesian_position[0], cartesian_position[1], cartesian_position[2]);
+    if (background != 0) {
+        normcartesian = vec3((cartesian_position[0] * 360.0) - 360.0, (cartesian_position[1] * 180.0) - 90.0, cartesian_position[2] + 0.5);
+    }
+
+
+    if (cartesian == 1) {
+        gl_Position = MVP * vec4(normcartesian, 1.0);
+    } else {
+        float earthradus = 5.0 * ht;
+        
+        if (background != 0) {
+            earthradus = 4.98;
+        }
+
+        float hradus = earthradus*cos(3.1415/180.0 * normcartesian[1]);
+        vec3 polarposition = vec3(hradus * cos(3.1415/180.0 * normcartesian[0]), earthradus*sin(3.1415/180.0 * normcartesian[1]), hradus * sin(3.1415/180.0 * normcartesian[0]));
+
+        gl_Position = MVP * vec4(polarposition, 1.0);
+    }
 }

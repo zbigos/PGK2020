@@ -1,14 +1,12 @@
 #ifndef zad4included
     #define zad4included
 
-
-    int* labirynth;
-    int _labsize;
-
-    enum gamestate
+    enum mapview
     {
-        IN_MENU,
-        PLAYING_ENTRY_ANIMATION,
-        IN_GAME
+        TOPDOWN,
+        SPHERE,
     };
+
+    int mapview = SPHERE;
+
 #endif

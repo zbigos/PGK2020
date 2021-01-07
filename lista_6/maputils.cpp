@@ -33,7 +33,7 @@ vector<string> gettargets() {
     return targets;
 }
 
-void readfile(string filename, short int *mapdump) {
+void readfile(string filename, unsigned short int *mapdump) {
     std::ifstream mapdata(filename, std::ios::out | std::ios::binary);
 
     if (!mapdata) {
@@ -41,8 +41,8 @@ void readfile(string filename, short int *mapdump) {
         exit(1);
     }
 
-    char *recvdata = (char *)malloc(2 * SQ(NATIVE_MAP_RESOLUTION) * sizeof(char));
-    mapdata.read(recvdata, 2 * SQ(NATIVE_MAP_RESOLUTION));
+    unsigned char *recvdata = (unsigned char *)malloc(2 * SQ(NATIVE_MAP_RESOLUTION) * sizeof(unsigned char));
+    mapdata.read((char *)recvdata, 2 * SQ(NATIVE_MAP_RESOLUTION));
     
     for(int i = 0 ; i < NATIVE_MAP_RESOLUTION; i++)
         for(int j = 0 ; j < NATIVE_MAP_RESOLUTION; j++) {
@@ -60,8 +60,8 @@ void downsample(short int *map_input, short int *map_output, int input_map_edge,
 
 }
 
-short int * readfile_and_downsample(string filename, int downsample) {
-    short int *originalmap = (short int *)malloc(SQ(NATIVE_MAP_RESOLUTION) * sizeof(short int));
+unsigned short int * readfile_and_downsample(string filename, int downsample) {
+    unsigned short int *originalmap = (unsigned short int *)malloc(SQ(NATIVE_MAP_RESOLUTION) * sizeof(unsigned short int));
     readfile(filename, originalmap);
     return originalmap;
 }
