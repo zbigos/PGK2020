@@ -7,6 +7,6 @@
         SPHERE,
     };
 
-    int mapview = SPHERE;
+    int mapview = TOPDOWN;
 
 #endif

@@ -82,6 +82,12 @@ class Chunk {
             maphandle = mapdata;
 
             if (mapdata != NULL) {
+                float *dupa = (float *)malloc(1201*1201*sizeof(float));
+
+                for(int i = 0; i < 1201*1201; i++) {
+                    dupa[i] = (float)(mapdata[i])/(255.0*255.0);
+                }
+
                 glGenTextures(1, &TextureId);
                 std::cout << "texture handl " << TextureId << " ";
                 glBindTexture(GL_TEXTURE_2D, TextureId);
@@ -89,17 +95,21 @@ class Chunk {
                 glTexImage2D(
                     GL_TEXTURE_2D, 
                     0, 
-                    GL_RED, // dziękuję bardzo stackoverflow. 
+                    GL_R16F, // dziękuję bardzo stackoverflow. 
                     1200, 
                     1200, 
                     0, 
                     GL_RED, // naprawdę 0 pojęcia co tu się dzieje xD 
-                    GL_SHORT,
-                    mapdata
+                    GL_FLOAT,
+                    dupa
                 ); 
+
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+                free(dupa);
             }
             // pretesselate right now.
             GLuint tslation_faces = preteselation_level * preteselation_level;
@@ -123,9 +133,6 @@ class Chunk {
                     Verts[(preteselation_level + 1) * i + j + 0] = (2.0 * msx)*((double)i/(double)(preteselation_level + 1)) - msx;
                     Verts[(preteselation_level + 1) * i + j + 1] = (2.0 * msy)*((double)j/(double)(preteselation_level + 1)) - msy;
                     Verts[(preteselation_level + 1) * i + j + 2] = 0.0;
-                    if(!mapdata) {
-                        printf("%lf %lf\n", Verts[(preteselation_level + 1) * i + j + 0], Verts[(preteselation_level + 1) * i + j + 1]);
-                    }
                 }
 
             for(int i = 0; i < preteselation_level; i += 1)
@@ -243,7 +250,10 @@ class Chunk {
             glUniform3f(UDiffuseMaterial_, 0, 0.75, 0.75);
             
             /* wireframe */
-            //glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+            if (maphandle == NULL) 
+                glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+            else
+                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
             /* to mówi ile vertexów składa się na jeden patch */
             glPatchParameteri(GL_PATCH_VERTICES, 4); 

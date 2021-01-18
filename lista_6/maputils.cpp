@@ -7,17 +7,17 @@
 using std::vector;
 using std::string;
 
-vector<string> gettargets() {
+vector<string> gettargets(string path) {
     vector<string> targets;
 
     DIR *dir;
     struct dirent *ent;
     
-    if ((dir = opendir ("test/maps")) != NULL) {
+    if ((dir = opendir (path.c_str())) != NULL) {
         while ((ent = readdir (dir)) != NULL) {
             if (ent->d_name[0] != '.') {
                 string mname = ent->d_name;
-                targets.push_back("test/maps/" + mname);
+                targets.push_back(path + "/" + mname);
             }
             printf ("%s\n", ent->d_name);
         }
@@ -47,17 +47,16 @@ void readfile(string filename, unsigned short int *mapdump) {
     for(int i = 0 ; i < NATIVE_MAP_RESOLUTION; i++)
         for(int j = 0 ; j < NATIVE_MAP_RESOLUTION; j++) {
             int xcoord = i;
-            int ycoord = (NATIVE_MAP_RESOLUTION + (j-i))%NATIVE_MAP_RESOLUTION;
+            int ycoord = (NATIVE_MAP_RESOLUTION + (j-i-1))%NATIVE_MAP_RESOLUTION;
             int index = NATIVE_MAP_RESOLUTION * xcoord + ycoord;
             int findex = NATIVE_MAP_RESOLUTION * i + j;
-            mapdump[index] = recvdata[2 * findex + 0] << 8 | recvdata[2 * findex + 1];
+            if ((recvdata[2 * findex + 0] << 8 | recvdata[2 * findex + 1]) > ((1<<14)-1))
+                mapdump[i] = 0;
+            else
+                mapdump[index] = recvdata[2 * findex + 0] << 8 | recvdata[2 * findex + 1];
         }
 
     free(recvdata);
-}
-
-void downsample(short int *map_input, short int *map_output, int input_map_edge, int compression_edge_ratio) {
-
 }
 
 unsigned short int * readfile_and_downsample(string filename, int downsample) {

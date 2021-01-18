@@ -14,13 +14,21 @@ uniform sampler2D myTextureSampler;
 uniform int background;
 uniform int cartesian;
 
+#define pi 3.14159265
+
 void main()
 {
-    UV = ((1.0/preteselation) * (gl_TessCoord + vec3(gl_PrimitiveID/preteselation, gl_PrimitiveID%preteselation, 0.0)).xy);
+    float hoff = 0.003;
+    UV = ((1.0/preteselation) * (gl_TessCoord + vec3(gl_PrimitiveID/preteselation, gl_PrimitiveID%preteselation, 0.0)).xy);// + vec2(0.001, 0.0);
 
     float ht = 1.0;
-    if (background == 0) 
-        ht = texture( myTextureSampler, UV ).r * 0.1 + 1.0;
+    if (background == 0) {
+        if (cartesian == 1) {
+            ht = texture( myTextureSampler, UV*(1-2*hoff) + vec2(hoff) ).r * 10.0 + 1.0;
+        } else {
+            ht = texture( myTextureSampler, UV*(1-2*hoff) + vec2(hoff) ).r * 0.005 + 1.0;
+        }
+    }
 
     vec3 cartesian_position = ChunkPosition + (1.0/preteselation) * (gl_TessCoord + vec3(gl_PrimitiveID/preteselation, gl_PrimitiveID%preteselation, ht));
 
@@ -29,7 +37,6 @@ void main()
     if (background != 0) {
         normcartesian = vec3((cartesian_position[0] * 360.0) - 360.0, (cartesian_position[1] * 180.0) - 90.0, cartesian_position[2] + 0.5);
     }
-
 
     if (cartesian == 1) {
         gl_Position = MVP * vec4(normcartesian, 1.0);
@@ -40,8 +47,8 @@ void main()
             earthradus = 4.98;
         }
 
-        float hradus = earthradus*cos(3.1415/180.0 * normcartesian[1]);
-        vec3 polarposition = vec3(hradus * cos(3.1415/180.0 * normcartesian[0]), earthradus*sin(3.1415/180.0 * normcartesian[1]), hradus * sin(3.1415/180.0 * normcartesian[0]));
+        float hradus = earthradus*cos(pi/180.0 * normcartesian[1]);
+        vec3 polarposition = vec3(hradus * cos(pi/180.0 * normcartesian[0]), earthradus*sin(pi/180.0 * normcartesian[1]), hradus * sin(pi/180.0 * normcartesian[0]));
 
         gl_Position = MVP * vec4(polarposition, 1.0);
     }
